@@ -1,0 +1,30 @@
+mat-row[cdkdrag] {
+	cursor: grab;
+}
+
+/* expenses.scss */
+mat-row[cdkdrag] {
+	cursor: grab;
+}
+.cdk-drag-preview {
+	box-shadow: var(--mat-elevation-8);
+}
+
+.btn-primary {
+	margin: 12px;
+	width: calc(100% - 24px);
+}
+
+.temporary-row {
+	color: color-mix(in srgb, var(--mat-sys-primary) 75%, white) !important;
+	position: relative;
+
+	mat-icon {
+		position: absolute;
+		right: 0px;
+		top: calc(50% - 7px);
+		font-size: 14px;
+		color: var(--mat-sys-primary);
+		pointer-events: none;
+	}
+}

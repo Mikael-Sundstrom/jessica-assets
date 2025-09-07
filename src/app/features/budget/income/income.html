@@ -1,0 +1,55 @@
+<button matButton="elevated" class="btn-primary" (click)="openAdd()">
+	Lägg till
+	<mat-icon>add</mat-icon>
+</button>
+
+<mat-table
+	[dataSource]="rows()"
+	cdkDropList
+	[cdkDropListData]="rows()"
+	(cdkDropListDropped)="drop($event)"
+	class="budget-table"
+>
+	<!-- Post -->
+	<ng-container matColumnDef="name">
+		<mat-header-cell *matHeaderCellDef> Inkomst </mat-header-cell>
+		<mat-cell *matCellDef="let r">{{ r.title }}</mat-cell>
+		<mat-footer-cell *matFooterCellDef> </mat-footer-cell>
+	</ng-container>
+
+	<!-- Mikael -->
+	<ng-container matColumnDef="mikael">
+		<mat-header-cell *matHeaderCellDef> Mikael </mat-header-cell>
+		<mat-cell *matCellDef="let r">{{ toCurrency(r.mikaelAmount) }}</mat-cell>
+		<mat-footer-cell *matFooterCellDef>{{ toCurrency(totals().mikael) }}</mat-footer-cell>
+	</ng-container>
+
+	<!-- Jessica -->
+	<ng-container matColumnDef="jessica">
+		<mat-header-cell *matHeaderCellDef> Jessica </mat-header-cell>
+		<mat-cell *matCellDef="let r">{{ toCurrency(r.jessicaAmount) }}</mat-cell>
+		<mat-footer-cell *matFooterCellDef>{{ toCurrency(totals().jessica) }}</mat-footer-cell>
+	</ng-container>
+
+	<!-- Totalt -->
+	<ng-container matColumnDef="total">
+		<mat-header-cell *matHeaderCellDef> Totalt </mat-header-cell>
+		<mat-cell *matCellDef="let r">
+			{{ toCurrency(getRowTotal(r)) }}
+			@if (r.temporary) {
+			<mat-icon>info</mat-icon>
+			}
+		</mat-cell>
+		<mat-footer-cell *matFooterCellDef>{{ toCurrency(totals().all) }}</mat-footer-cell>
+	</ng-container>
+
+	<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+	<mat-row
+		*matRowDef="let row; columns: displayedColumns"
+		cdkDrag
+		(click)="editRow(row)"
+		class="striped-row"
+		[class.temporary-row]="row.temporary"
+	></mat-row>
+	<mat-footer-row *matFooterRowDef="displayedColumns"></mat-footer-row>
+</mat-table>

@@ -1,1 +1,89 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+html {
+	@include mat.theme(
+		(
+			color: (
+				primary: mat.$rose-palette,
+				tertiary: mat.$violet-palette,
+			),
+			typography: Roboto,
+			density: 0,
+		)
+	);
+}
+
+// prettier-ignore
+html.theme-rose { @include mat.theme((color: (primary: mat.$rose-palette, tertiary: mat.$violet-palette))); }
+// prettier-ignore
+html.theme-red { @include mat.theme((color: (primary: mat.$red-palette, tertiary: mat.$orange-palette))); }
+// prettier-ignore
+html.theme-blue { @include mat.theme((color: (primary: mat.$blue-palette, tertiary: mat.$cyan-palette))); }
+// prettier-ignore
+html.theme-green { @include mat.theme((color: (primary: mat.$green-palette, tertiary: mat.$spring-green-palette))); }
+// prettier-ignore
+html.theme-yellow { @include mat.theme((color: (primary: mat.$yellow-palette, tertiary: mat.$chartreuse-palette))); }
+// prettier-ignore
+html.theme-magenta { @include mat.theme((color: (primary: mat.$magenta-palette, tertiary: mat.$azure-palette))); }
+
+body {
+	color-scheme: light;
+	background-color: var(--mat-sys-surface);
+	color: var(--mat-sys-on-surface);
+	font: var(--mat-sys-body-medium);
+
+	margin: 0;
+	font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+.spacer {
+	flex: 1 1 auto;
+}
+
+/**
+ * Angular Material theme overrides
+ * https://material.angular.dev/guide/theming#overriding-component-styles
+ *
+ * Use these sparingly. Prefer using CSS variables in your components.
+ * These overrides are global and affect all components of that type.
+ */
+@include mat.tabs-overrides(
+	(
+		active-indicator-height: 2px,
+		container-height: 60px,
+	)
+);
+
+.btn-primary {
+	@include mat.button-overrides(
+		(
+			protected-container-color: color-mix(in srgb, var(--mat-sys-secondary) 20%, white),
+			protected-label-text-color: var(--mat-sys-secondary),
+			protected-container-shape: 4px,
+			protected-container-height: 46px,
+			protected-label-text-size: 16px,
+		)
+	);
+}
+
+.budget-table {
+	@include mat.table-overrides(
+		(
+			background-color: color-mix(in srgb, var(--mat-sys-primary) 20%, white),
+			row-item-label-text-size: 13px,
+			row-item-outline-color: var(--mat-sys-surface),
+			header-headline-size: 16px,
+		)
+	);
+	.striped-row:nth-child(even) {
+		background-color: white;
+	}
+	.striped-row:nth-child(odd) {
+		background-color: var(--mat-sys-surface);
+	}
+}

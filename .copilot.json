@@ -1,0 +1,22 @@
+{
+	"name": "Angular 20 Kodstandard",
+	"scope": ["typescript", "html", "scss"],
+	"style": "angular-standalone",
+	"rules": [
+		"Använd Angular 20 standalone components - inga NgModule.",
+		"Använd nya Angular control flow (@for, @if, @switch) - inte *ngFor / *ngIf.",
+		"Föredra signal() och computed() samt inject() framför @Input() och constructor(private …).",
+		"Services ska vara @Injectable({ providedIn: 'root' }) och använda signals/computed när möjligt.",
+		"Inga CommonModule-imports.",
+		"Strukturera UI med Angular Material-komponenter (mat-tab-group, mat-form-field, mat-table, etc.).",
+		"Material-färger: använd M3-teman och SCSS-overrides, undvik color=\"primary\" i markup.",
+		"Grafer: använd ng2-charts med Chart.js.",
+		"Initiera Chart.js registerables i main.ts (Chart.register(...registerables)).",
+		"Firebase/AngularFire: API-anrop alltid i Angular injection-context (inject() i services, eller runInInjectionContext vid behov).",
+		"Firestore realtid: använd collectionData() tillsammans med toSignal(); ingen manuell loadAll() eller onSnapshot.",
+		"När en observable bara behövs en gång (t.ex. dialoger), använd firstValueFrom().",
+		"Zoneless: driv UI-uppdateringar via signals; mutera inte state direkt utan att uppdatera en signal.",
+		"Kodexempel ska vara direkt körbara i ett Angular 20-projekt med standalone-komponenter.",
+		"Skriv modern, enkel och typesafe kod."
+	]
+}

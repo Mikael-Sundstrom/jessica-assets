@@ -1,0 +1,25 @@
+<mat-tab-group animationDuration="400ms">
+	<mat-tab label="Översikt">
+		@defer (on viewport) {
+		<app-overview />
+		} @placeholder {
+		<mat-progress-bar mode="indeterminate"></mat-progress-bar>
+		}
+	</mat-tab>
+
+	<mat-tab label="Kostnader">
+		@defer (on viewport) {
+		<app-costs />
+		} @placeholder {
+		<mat-progress-bar mode="indeterminate"></mat-progress-bar>
+		}
+	</mat-tab>
+
+	<mat-tab label="Inkomster">
+		@defer (on viewport) {
+		<app-income />
+		} @placeholder {
+		<mat-progress-bar mode="indeterminate"></mat-progress-bar>
+		}
+	</mat-tab>
+</mat-tab-group>

@@ -1,0 +1,29 @@
+.btn-primary {
+	margin: 12px;
+	width: calc(100% - 24px);
+}
+
+.group-row {
+	background: var(--mat-sys-surface-variant);
+	.group-row-cell {
+		font-weight: 600;
+		padding: 10px 16px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--mat-sys-secondary);
+		border-top: 1px solid var(--mat-sys-outline-variant);
+	}
+}
+.temporary-row {
+	color: color-mix(in srgb, var(--mat-sys-primary) 75%, white) !important;
+	position: relative;
+
+	mat-icon {
+		position: absolute;
+		right: 6px;
+		top: calc(50% - 7px);
+		font-size: 14px;
+		pointer-events: none;
+	}
+}

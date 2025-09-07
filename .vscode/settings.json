@@ -1,3 +1,24 @@
 {
-  "prettier.enable": true
+	"files.exclude": {
+		"**/*spec.ts": true,
+		"**/.prettierrc": true,
+		"**/.editorconfig": true,
+		"**/.firebaserc": true,
+		"**/.gitignore": true,
+		"**/.copilot.json": true,
+		"**/firebase.json": false,
+		"**/angular.json": false,
+		"**/*-lock.json": true,
+		"**/tsconfig*.json": true,
+		"**/node_modules": true,
+		"**/public": false,
+		"**/dist": true,
+		"**/.github": true,
+		"**/.firebase": true,
+		"**/.angular": true
+	},
+	"material-icon-theme.files.associations": {
+		"main.ts": "typescript",
+		"*.ts": "angular-component"
+	}
 }

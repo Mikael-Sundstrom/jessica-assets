@@ -1,0 +1,7 @@
+@if (!ready()) {
+<p style="padding: 16px">Laddar…</p>
+} @else { @if (user()) {
+<app-home />
+} @else {
+<app-welcome />
+} }

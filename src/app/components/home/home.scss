@@ -1,0 +1,25 @@
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 16px;
+	padding: 16px;
+}
+.tile {
+	display: grid;
+	gap: 8px;
+	align-content: start;
+	padding: 16px;
+	border-radius: 16px;
+}
+mat-icon {
+	font-size: 32px;
+	width: 32px;
+	height: 32px;
+}
+h3 {
+	margin: 8px 0 0;
+}
+p {
+	margin: 0 0 8px;
+	color: rgba(0, 0, 0, 0.6);
+}

@@ -1,0 +1,55 @@
+.title {
+	font-weight: 500;
+}
+.title.center {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+button {
+	padding: 0;
+	&.avatar-btn img,
+	&.avatar-btn .avatar-initials {
+		width: 32px;
+		height: 32px;
+		padding: 4px;
+		border-radius: 50%;
+		display: inline-grid;
+		place-items: center;
+		background: var(--sys-secondary-container);
+		color: var(--sys-on-secondary-container);
+		font-weight: 600;
+		font-size: 0.8rem;
+	}
+}
+
+/* app.scss */
+.app-toolbar {
+	--mat-toolbar-container-background-color: var(--mat-sys-primary);
+	--mat-toolbar-container-text-color: var(--mat-sys-on-primary);
+	--mat-icon-color: var(--mat-sys-on-primary);
+}
+
+.theme-picker {
+	display: flex;
+	gap: 8px;
+	padding: 8px 16px;
+}
+
+.theme-dot {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	border: 2px solid rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+	outline: none;
+}
+.theme-dot:hover {
+	border-color: var(--mat-sys-primary);
+}
+.theme-dot.active {
+	border-color: var(--mat-sys-primary);
+	border: 2px solid var(--mat-sys-primary);
+	box-shadow: 0 0 0 2px var(--mat-sys-primary) inset;
+}

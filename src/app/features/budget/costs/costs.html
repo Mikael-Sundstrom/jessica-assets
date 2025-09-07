@@ -1,0 +1,64 @@
+<button matButton="elevated" class="btn-primary" (click)="openAdd()">
+	Lägg till
+	<mat-icon>add</mat-icon>
+</button>
+
+<mat-table [dataSource]="tableData()" class="budget-table">
+	<!-- Grupp-rad -->
+	<ng-container matColumnDef="group">
+		<mat-cell *matCellDef="let g" [attr.colspan]="displayedColumns.length" class="group-row-cell">
+			<mat-icon class="mr-2">{{ g.icon }}</mat-icon>
+			{{ g.label }}
+		</mat-cell>
+	</ng-container>
+
+	<!-- Utgift (utan drag-handle) -->
+	<ng-container matColumnDef="name">
+		<mat-header-cell *matHeaderCellDef> Utgift </mat-header-cell>
+		<mat-cell *matCellDef="let r">
+			<span class="name-text">{{ r.title }}</span>
+		</mat-cell>
+		<mat-footer-cell *matFooterCellDef> </mat-footer-cell>
+	</ng-container>
+
+	<!-- Mikael -->
+	<ng-container matColumnDef="mikael">
+		<mat-header-cell *matHeaderCellDef> Mikael </mat-header-cell>
+		<mat-cell *matCellDef="let r">{{ toCurrency(r.mikaelAmount) }}</mat-cell>
+		<mat-footer-cell *matFooterCellDef>{{ toCurrency(totals().mikael) }}</mat-footer-cell>
+	</ng-container>
+
+	<!-- Jessica -->
+	<ng-container matColumnDef="jessica">
+		<mat-header-cell *matHeaderCellDef> Jessica </mat-header-cell>
+		<mat-cell *matCellDef="let r">{{ toCurrency(r.jessicaAmount) }}</mat-cell>
+		<mat-footer-cell *matFooterCellDef>{{ toCurrency(totals().jessica) }}</mat-footer-cell>
+	</ng-container>
+
+	<!-- Totalt -->
+	<ng-container matColumnDef="total">
+		<mat-header-cell *matHeaderCellDef> Totalt </mat-header-cell>
+		<mat-cell *matCellDef="let r" class="has-temp-icon">
+			<span>{{ toCurrency(getRowTotal(r)) }}</span>
+			@if (r.temporary) {
+			<mat-icon class="temp-icon">info</mat-icon>
+			}
+		</mat-cell>
+		<mat-footer-cell *matFooterCellDef>{{ toCurrency(totals().all) }}</mat-footer-cell>
+	</ng-container>
+
+	<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
+	<!-- Data-rad (vanlig klick för edit) -->
+	<mat-row
+		*matRowDef="let row; columns: displayedColumns; when: isDataRow"
+		class="striped-row"
+		[class.temporary-row]="row.temporary"
+		(click)="editRow(row)"
+	></mat-row>
+
+	<!-- Grupp-rad -->
+	<mat-row *matRowDef="let row; columns: ['group']; when: isGroupRow" class="group-row"></mat-row>
+
+	<mat-footer-row *matFooterRowDef="displayedColumns"></mat-footer-row>
+</mat-table>
