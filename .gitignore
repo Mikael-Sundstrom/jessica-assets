@@ -46,5 +46,10 @@ Thumbs.db
 *-debug.log
 .runtimeconfig.json
 
+# Env files
+.env
+.env.*
+
+
 # Local files
 wallet.txt

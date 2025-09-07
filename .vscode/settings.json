@@ -4,7 +4,7 @@
 		"**/.prettierrc": true,
 		"**/.editorconfig": true,
 		"**/.firebaserc": true,
-		"**/.gitignore": true,
+		"**/.gitignore": false,
 		"**/.copilot.json": true,
 		"**/firebase.json": false,
 		"**/angular.json": false,
