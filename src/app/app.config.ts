@@ -12,7 +12,6 @@ import { initializeApp, provideFirebaseApp } from '@angular/fire/app'
 import { getAuth, provideAuth } from '@angular/fire/auth'
 import { getFirestore, provideFirestore } from '@angular/fire/firestore'
 import { getStorage, provideStorage } from '@angular/fire/storage'
-import { environment } from '../environments/environment.prod'
 
 export const appConfig: ApplicationConfig = {
 	providers: [
@@ -29,7 +28,16 @@ export const appConfig: ApplicationConfig = {
 		{ provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: { autoFocus: true, restoreFocus: true } },
 
 		// 🔥 AngularFire (hosten äger init)
-		provideFirebaseApp(() => initializeApp(environment.firebase)),
+		provideFirebaseApp(() =>
+			initializeApp({
+				projectId: 'jessica-assets',
+				appId: '1:490194807563:web:7b39f3ca3baa28b021100e',
+				storageBucket: 'jessica-assets.firebasestorage.app',
+				apiKey: 'AIzaSyCggeMH0sML-h1j2uoKVP5KKTQKuAjNWmo',
+				authDomain: 'jessica-assets.firebaseapp.com',
+				messagingSenderId: '490194807563',
+			})
+		),
 		provideAuth(() => getAuth()),
 		provideFirestore(() => getFirestore()),
 		provideStorage(() => getStorage()),

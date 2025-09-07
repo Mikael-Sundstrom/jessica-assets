@@ -13,9 +13,9 @@
 		"**/node_modules": true,
 		"**/public": false,
 		"**/dist": true,
-		"**/.github": true,
+		"**/.github": false,
 		"**/.firebase": true,
-		"**/.angular": true
+		"**/.angular": false
 	},
 	"material-icon-theme.files.associations": {
 		"main.ts": "typescript",
