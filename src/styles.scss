@@ -74,10 +74,10 @@ body {
 .budget-table {
 	@include mat.table-overrides(
 		(
-			background-color: color-mix(in srgb, var(--mat-sys-primary) 20%, white),
+			// background-color: color-mix(in srgb, var(--mat-sys-primary) 20%, white),
 			row-item-label-text-size: 13px,
 			row-item-outline-color: var(--mat-sys-surface),
-			header-headline-size: 16px,
+			header-headline-size: 16px
 		)
 	);
 	.striped-row:nth-child(even) {

@@ -199,7 +199,8 @@ export const EXPENSE_CATEGORY_GROUPS: CategoryGroup[] = [
 			Category.PublicTransport,
 		],
 	},
-	{ label: 'Ekonomi', items: [Category.Loans, Category.Insurance, Category.Savings, Category.BankFees] },
+	{ label: 'Sparande', items: [Category.Savings] },
+	{ label: 'Ekonomi', items: [Category.Loans, Category.Insurance, Category.BankFees] },
 	{ label: 'IT & abonnemang', items: [Category.IT, Category.Subscriptions] },
 	{
 		label: 'Personligt & hälsa',

@@ -10,4 +10,15 @@
 	<mat-card>
 		<app-total-chart />
 	</mat-card>
+
+	<mat-card>
+		<app-cost-category-donut-chart [mode]="'detailed'" [includeTemporary]="false" />
+	</mat-card>
+	<mat-card>
+		<app-cost-category-donut-chart [mode]="'grouped'" [includeTemporary]="false" />
+	</mat-card>
+	<!-- <mat-card>
+		<app-cost-category-donut-chart [mode]="'grouped'" [includeTemporary]="false" [includeSavingsAsExpense]="true" />
+	</mat-card> -->
+	<app-cost-groups-card />
 </div>

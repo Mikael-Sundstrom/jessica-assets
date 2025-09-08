@@ -8,9 +8,23 @@ import { MatTableModule } from '@angular/material/table'
 import { MatTooltipModule } from '@angular/material/tooltip'
 import { AddEditDialogComponent } from '../add-edit-dialog.component'
 import { CostRow, DialogClosed, DialogResult } from '../budget.model'
-import { Category } from '../budget.model'
+import { Category, EXPENSE_CATEGORY_GROUPS } from '../budget.model'
 
 type GroupHeader = { __kind: 'group'; label: string; icon: string }
+
+const GROUP_ICON: Record<string, string> = {
+	'Boende & drift': 'home',
+	'Mat & hushåll': 'restaurant',
+	Transport: 'directions_car',
+	Ekonomi: 'account_balance',
+	Sparande: 'savings',
+	'IT & abonnemang': 'devices',
+	'Personligt & hälsa': 'health_and_safety',
+	'Barn & husdjur': 'child_care',
+	'Fritid & resor': 'emoji_events', // alt: 'flight', 'movie'
+	'Hem & trädgård': 'yard',
+	Övrigt: 'category',
+}
 
 @Component({
 	selector: 'app-costs',
@@ -22,113 +36,29 @@ type GroupHeader = { __kind: 'group'; label: string; icon: string }
 export class Costs {
 	private svc = inject(BudgetService)
 	private dialog = inject(MatDialog)
-	// Gruppnamn/etikett
+
+	// Map category -> group label från modellen
+	private labelByCategory = computed(() => {
+		const m = new Map<Category, string>()
+		for (const g of EXPENSE_CATEGORY_GROUPS) {
+			for (const c of g.items) m.set(c, g.label)
+		}
+		return m
+	})
+
 	groupLabel(c?: Category): string {
-		switch (c) {
-			// Boende & drift
-			case Category.Housing:
-			case Category.UtilitiesElectricity:
-			case Category.UtilitiesWaterSewer:
-			case Category.UtilitiesHeating:
-			case Category.HomeMaintenance:
-			case Category.FurnitureAppliances:
-				return 'Boende & drift'
-
-			// Mat & hushåll
-			case Category.Food:
-			case Category.DiningOut:
-			case Category.Household:
-				return 'Mat & hushåll'
-
-			// Transport
-			case Category.VehicleFuel:
-			case Category.VehicleMaintenance:
-			case Category.VehicleTaxTollsParking:
-			case Category.PublicTransport:
-				return 'Transport'
-
-			// Ekonomi
-			case Category.Loans:
-			case Category.Insurance:
-			case Category.Savings:
-			case Category.BankFees:
-				return 'Ekonomi'
-
-			// IT & abonnemang
-			case Category.IT:
-			case Category.Subscriptions:
-				return 'IT & abonnemang'
-
-			// Personligt & hälsa
-			case Category.Clothing:
-			case Category.Healthcare:
-			case Category.Pharmacy:
-			case Category.Dental:
-			case Category.Beauty:
-			case Category.SportsGym:
-				return 'Personligt & hälsa'
-
-			// Barn & husdjur
-			case Category.Children:
-			case Category.Pets:
-				return 'Barn & husdjur'
-
-			// Fritid & resor
-			case Category.Entertainment:
-			case Category.Hobbies:
-			case Category.TravelHoliday:
-			case Category.GiftsCharity:
-				return 'Fritid & resor'
-
-			// Hem & trädgård
-			case Category.GardenOutdoor:
-				return 'Hem & trädgård'
-
-			default:
-				return 'Övrigt'
-		}
+		if (!c) return 'Övrigt'
+		return this.labelByCategory().get(c) ?? 'Övrigt'
 	}
 
-	// Material-ikon för gruppen
 	groupIcon(c?: Category): string {
-		switch (this.groupLabel(c)) {
-			case 'Boende & drift':
-				return 'home'
-			case 'Mat & hushåll':
-				return 'restaurant'
-			case 'Transport':
-				return 'directions_car'
-			case 'Ekonomi':
-				return 'savings'
-			case 'IT & abonnemang':
-				return 'devices'
-			case 'Personligt & hälsa':
-				return 'health_and_safety'
-			case 'Barn & husdjur':
-				return 'child_care'
-			case 'Fritid & resor':
-				return 'emoji_events' // alt: 'flight', 'movie'
-			case 'Hem & trädgård':
-				return 'yard'
-			default:
-				return 'category'
-		}
+		const label = this.groupLabel(c)
+		return GROUP_ICON[label] ?? 'category'
 	}
-	tableData = computed<(CostRow | GroupHeader)[]>(() => {
-		const order = [
-			'Boende & drift',
-			'Mat & hushåll',
-			'Transport',
-			'Ekonomi',
-			'IT & abonnemang',
-			'Personligt & hälsa',
-			'Barn & husdjur',
-			'Fritid & resor',
-			'Hem & trädgård',
-			'Övrigt',
-		]
 
-		// gruppera
+	private groupOrder = computed(() => [...EXPENSE_CATEGORY_GROUPS.map(g => g.label), 'Övrigt'])
+
+	tableData = computed<(CostRow | GroupHeader)[]>(() => {
 		const groups = new Map<string, CostRow[]>()
 		for (const r of this.rows()) {
 			const g = this.groupLabel(r.category)
@@ -136,9 +66,8 @@ export class Costs {
 			groups.get(g)!.push(r)
 		}
 
-		// flata i “order”, hoppa över tomma grupper
 		const out: (CostRow | GroupHeader)[] = []
-		for (const g of order) {
+		for (const g of this.groupOrder()) {
 			const rs = groups.get(g)
 			if (!rs || rs.length === 0) continue
 			out.push({ __kind: 'group', label: g, icon: this.groupIcon(rs[0].category) })
@@ -147,15 +76,14 @@ export class Costs {
 		return out
 	})
 
-	// Row-predikat
 	isGroupRow = (_: number, item: CostRow | GroupHeader) => (item as any).__kind === 'group'
 	isDataRow = (_: number, item: CostRow | GroupHeader) => !(item as any).__kind
 
-	// (valfritt) hjälp för tooltip i name-cellen
 	categoryChip(r: CostRow) {
 		return this.groupLabel(r.category)
 	}
-	displayedColumns = [/* 'cat', */ 'name', 'mikael', 'jessica', 'total'] as const
+
+	displayedColumns = ['name', 'mikael', 'jessica', 'total'] as const
 
 	rows = computed<CostRow[]>(() => {
 		const byTitle = new Map<string, CostRow>()
@@ -198,7 +126,6 @@ export class Costs {
 
 	totals = computed(() => {
 		const rs = this.rows()
-		// Exkludera temporary från summering
 		const active = rs.filter(r => !r.temporary)
 
 		return {
@@ -251,11 +178,9 @@ export class Costs {
 					height: '440px',
 					data: {
 						mode: 'cost',
-						// du kan skicka ett av id:n (används vid delete-knappen i dialogen)
 						id: row.idMikael || row.idJessica,
 						name: row.title,
 						category: row.category,
-						// dessa är i öre — dialogen konverterar till kr i sin form
 						perUser: { mikael: row.mikaelAmount, jessica: row.jessicaAmount },
 						uidMikael: 'mikael',
 						uidJessica: 'jessica',
@@ -267,21 +192,18 @@ export class Costs {
 
 		if (!res) return
 
-		// 🗑️ Radering
 		if ('delete' in res && res.delete) {
 			if (row.idMikael) await this.svc.remove(row.idMikael)
 			if (row.idJessica) await this.svc.remove(row.idJessica)
 			return
 		}
 
-		// 💾 Spara
 		if (!('delete' in res)) {
 			await this.upsertForPerson(res, 'mikael', row.idMikael)
 			await this.upsertForPerson(res, 'jessica', row.idJessica)
 		}
 	}
 
-	// Gemensam hjälpare för add/update per person
 	private async upsertForPerson(
 		res: DialogResult,
 		person: 'mikael' | 'jessica',
@@ -291,7 +213,6 @@ export class Costs {
 		const amount = res.perUser?.[person] ?? 0
 
 		if (existingId) {
-			// Update får skriva 0 (nollställning) som tidigare
 			await this.svc.update(existingId, {
 				title: res.name,
 				amount,
@@ -301,7 +222,6 @@ export class Costs {
 				temporary: !!res.temporary,
 			})
 		} else if (amount > 0 || opts.allowZeroOnCreate) {
-			// Nytt dokument – skapa även om amount = 0 när det uttryckligen tillåts
 			await this.svc.add({
 				title: res.name,
 				amount,

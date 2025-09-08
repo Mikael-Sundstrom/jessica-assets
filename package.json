@@ -6,7 +6,9 @@
 		"start": "ng serve",
 		"build": "ng build -c production",
 		"watch": "ng build --watch --configuration development",
-		"test": "ng test"
+		"test": "ng test",
+		"git": "git add . && git commit -m 'update' && git push origin main",
+		"deploy": "firebase deploy --only hosting"
 	},
 	"private": true,
 	"dependencies": {

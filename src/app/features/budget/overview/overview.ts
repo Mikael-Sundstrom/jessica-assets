@@ -2,17 +2,28 @@ import { Component, computed, inject } from '@angular/core'
 import { MatGridListModule } from '@angular/material/grid-list'
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { CostChart } from '../charts/cost-chart.component'
+import { CostCategoryDonutChart } from '../charts/cost-category-donut-chart'
 import { IncomeChart } from '../charts/income-chart.component'
 import { TotalChart } from '../charts/total-chart.component'
 import { MatDividerModule } from '@angular/material/divider'
 import { MatCardModule } from '@angular/material/card'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { distinctUntilChanged, map } from 'rxjs'
+import { CostGroupsCard } from '../charts/doughnut-chart/cost-groups-card'
 
 @Component({
 	selector: 'app-overview',
 	standalone: true,
-	imports: [MatGridListModule, MatDividerModule, MatCardModule, CostChart, IncomeChart, TotalChart],
+	imports: [
+		MatGridListModule,
+		MatDividerModule,
+		MatCardModule,
+		CostChart,
+		IncomeChart,
+		TotalChart,
+		CostCategoryDonutChart,
+		CostGroupsCard,
+	],
 	templateUrl: './overview.html',
 	styleUrl: './overview.scss',
 })
