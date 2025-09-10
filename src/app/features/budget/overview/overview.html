@@ -1,4 +1,47 @@
-<div class="grid">
+<mat-card class="controls-card">
+	<div class="row" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap">
+		<!-- Grupp / Detaljerad -->
+		<mat-button-toggle-group [value]="cfg.costView()" (change)="cfg.setCostView($event.value)">
+			<mat-button-toggle value="total">Total</mat-button-toggle>
+			<mat-button-toggle value="grouped">Grupperad</mat-button-toggle>
+			<mat-button-toggle value="detailed">Detaljerad</mat-button-toggle>
+		</mat-button-toggle-group>
+
+		<span style="flex: 1"></span>
+
+		<!-- Tillfälliga -->
+		<mat-slide-toggle [checked]="cfg.includeTemporary()" (change)="onIncludeTemporaryChange($event.checked)">
+			Inkludera tillfälligt
+		</mat-slide-toggle>
+
+		<!-- Amortering som utgift -->
+		<mat-slide-toggle
+			[checked]="cfg.costIncludeAmortizationAsExpense()"
+			(change)="onIncludeAmortizationChange($event.checked)"
+		>
+			Räkna amortering som utgift
+		</mat-slide-toggle>
+
+		<!-- Sparande som utgift -->
+		<mat-slide-toggle
+			[checked]="cfg.costIncludeSavingsAsExpense()"
+			(change)="onIncludeSavingsChange($event.checked)"
+		>
+			Räkna sparande som utgift
+		</mat-slide-toggle>
+
+		<!-- Personfilter (valfritt) -->
+		<button mat-button (click)="toggleMikael()" [class.opacity-50]="!isMikaelOn()">
+			<mat-icon>person</mat-icon> Mikael
+		</button>
+		<button mat-button (click)="toggleJessica()" [class.opacity-50]="!isJessicaOn()">
+			<mat-icon>person</mat-icon> Jessica
+		</button>
+	</div>
+</mat-card>
+
+<!-- Grid för kort/diagram -->
+<div class="grid" [style.--cols]="cols()">
 	<mat-card>
 		<app-cost-chart />
 	</mat-card>
@@ -7,18 +50,16 @@
 		<app-income-chart />
 	</mat-card>
 
-	<mat-card>
+	<!-- Totalen får spänna över båda kolumnerna i desktop -->
+	<mat-card [style.gridColumn]="totalColspan() === 2 ? 'span 2' : 'span 1'">
 		<app-total-chart />
 	</mat-card>
 
-	<mat-card>
-		<app-cost-category-donut-chart [mode]="'detailed'" [includeTemporary]="false" />
-	</mat-card>
-	<mat-card>
-		<app-cost-category-donut-chart [mode]="'grouped'" [includeTemporary]="false" />
-	</mat-card>
-	<!-- <mat-card>
-		<app-cost-category-donut-chart [mode]="'grouped'" [includeTemporary]="false" [includeSavingsAsExpense]="true" />
-	</mat-card> -->
-	<app-cost-groups-card />
+	<!-- Valfritt: Kategorifördelning (donut) -->
+	<!--
+  <mat-card>
+    <h3 class="mat-h3">Kategorifördelning</h3>
+    <app-cost-category-donut-chart />
+  </mat-card>
+  -->
 </div>

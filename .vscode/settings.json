@@ -13,12 +13,13 @@
 		"**/node_modules": true,
 		"**/public": false,
 		"**/dist": true,
-		"**/.github": false,
+		"**/.github": true,
 		"**/.firebase": true,
-		"**/.angular": false
+		"**/.angular": true
 	},
 	"material-icon-theme.files.associations": {
 		"main.ts": "typescript",
-		"*.ts": "angular-component"
+		"*.ts": "angular-component",
+		"*.model.ts": "angular"
 	}
 }

@@ -1,4 +1,3 @@
-// income.ts
 import { Component, computed, inject } from '@angular/core'
 import { firstValueFrom } from 'rxjs'
 import { AddEditDialogComponent } from '../add-edit-dialog.component'
@@ -28,6 +27,7 @@ export class Income {
 
 		for (const e of this.svc.entries()) {
 			if (e.type !== 'income') continue
+
 			const key = e.title.trim().toLowerCase()
 			const row =
 				byTitle.get(key) ??
@@ -42,10 +42,10 @@ export class Income {
 
 			if (e.person === 'mikael') {
 				row.idMikael = e.id
-				row.mikaelAmount = e.amount ?? 0
+				row.mikaelAmount = (row.mikaelAmount || 0) + (e.amount ?? 0)
 			} else if (e.person === 'jessica') {
 				row.idJessica = e.id
-				row.jessicaAmount = e.amount ?? 0
+				row.jessicaAmount = (row.jessicaAmount || 0) + (e.amount ?? 0)
 			}
 
 			row.category ??= e.category
@@ -73,8 +73,12 @@ export class Income {
 	})
 
 	toCurrency(ore?: number) {
-		const v = Math.round((ore ?? 0) / 100)
-		return v.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 })
+		const sek = Math.round((ore ?? 0) / 100)
+		return new Intl.NumberFormat('sv-SE', {
+			style: 'currency',
+			currency: 'SEK',
+			maximumFractionDigits: 0,
+		}).format(sek)
 	}
 
 	getRowTotal(r: IncomeRow) {
@@ -112,7 +116,7 @@ export class Income {
 						mode: 'income',
 						id: row.idMikael || row.idJessica,
 						name: row.title,
-						category: row.category ?? Category.Income,
+						category: row.category ?? ('income.general' as Category),
 						perUser: { mikael: row.mikaelAmount, jessica: row.jessicaAmount },
 						uidMikael: 'mikael',
 						uidJessica: 'jessica',
@@ -143,13 +147,15 @@ export class Income {
 		opts: { allowZeroOnCreate?: boolean } = {}
 	) {
 		const amount = res.perUser?.[person] ?? 0
+		const category = (res.category ?? ('income.general' as Category)) as Category
+
 		if (existingId) {
 			await this.svc.update(existingId, {
 				title: res.name,
 				amount,
 				person,
-				type: res.mode,
-				category: res.category ?? Category.Income,
+				type: res.mode, // 'income'
+				category,
 				temporary: !!res.temporary,
 			})
 		} else if (amount > 0 || opts.allowZeroOnCreate) {
@@ -157,8 +163,8 @@ export class Income {
 				title: res.name,
 				amount,
 				person,
-				type: res.mode,
-				category: res.category ?? Category.Income,
+				type: res.mode, // 'income'
+				category,
 				temporary: !!res.temporary,
 			})
 		}

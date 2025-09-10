@@ -6,24 +6,26 @@ import { MatButtonModule } from '@angular/material/button'
 import { MatIconModule } from '@angular/material/icon'
 import { MatTableModule } from '@angular/material/table'
 import { MatTooltipModule } from '@angular/material/tooltip'
+
 import { AddEditDialogComponent } from '../add-edit-dialog.component'
 import { CostRow, DialogClosed, DialogResult } from '../budget.model'
-import { Category, EXPENSE_CATEGORY_GROUPS } from '../budget.model'
 
-type GroupHeader = { __kind: 'group'; label: string; icon: string }
+import { Category, topGroupOf, TOPGROUP_LABEL, TopGroup } from '../budget.model' // ⬅︎ EXPENSE_CATEGORIES bort
 
-const GROUP_ICON: Record<string, string> = {
-	'Boende & drift': 'home',
-	'Mat & hushåll': 'restaurant',
-	Transport: 'directions_car',
-	Ekonomi: 'account_balance',
-	Sparande: 'savings',
-	'IT & abonnemang': 'devices',
-	'Personligt & hälsa': 'health_and_safety',
-	'Barn & husdjur': 'child_care',
-	'Fritid & resor': 'emoji_events', // alt: 'flight', 'movie'
-	'Hem & trädgård': 'yard',
-	Övrigt: 'category',
+type GroupHeader = { __kind: 'group'; group: TopGroup; label: string; icon: string }
+
+// Stabil ordning för kostnadsgrupper i tabellen (nya modellen)
+const EXPENSE_GROUP_ORDER: TopGroup[] = ['housing', 'food', 'transport', 'finance', 'savings', 'family', 'other']
+
+const GROUP_ICON: Record<TopGroup, string> = {
+	housing: 'home',
+	food: 'restaurant',
+	transport: 'directions_car',
+	finance: 'account_balance',
+	savings: 'savings',
+	family: 'family_restroom',
+	other: 'category',
+	income: 'savings', // används ej här
 }
 
 @Component({
@@ -37,31 +39,32 @@ export class Costs {
 	private svc = inject(BudgetService)
 	private dialog = inject(MatDialog)
 
-	// Map category -> group label från modellen
-	private labelByCategory = computed(() => {
-		const m = new Map<Category, string>()
-		for (const g of EXPENSE_CATEGORY_GROUPS) {
-			for (const c of g.items) m.set(c, g.label)
-		}
-		return m
+	// Enkel och “ren” grupplogik (dot-path → toppgrupp)
+	groupOf(c?: Category): TopGroup {
+		return c ? topGroupOf(c) : 'other'
+	}
+	groupLabel(g: TopGroup) {
+		return TOPGROUP_LABEL[g]
+	}
+	groupIcon(g: TopGroup) {
+		return GROUP_ICON[g] ?? 'category'
+	}
+
+	// Ordna bara grupper som faktiskt finns
+	private groupOrder = computed(() => {
+		const present = new Set<TopGroup>()
+		for (const r of this.rows()) present.add(this.groupOf(r.category))
+
+		const ordered: TopGroup[] = []
+		for (const g of EXPENSE_GROUP_ORDER) if (present.has(g)) ordered.push(g)
+		for (const g of present) if (!ordered.includes(g)) ordered.push(g)
+		return ordered
 	})
 
-	groupLabel(c?: Category): string {
-		if (!c) return 'Övrigt'
-		return this.labelByCategory().get(c) ?? 'Övrigt'
-	}
-
-	groupIcon(c?: Category): string {
-		const label = this.groupLabel(c)
-		return GROUP_ICON[label] ?? 'category'
-	}
-
-	private groupOrder = computed(() => [...EXPENSE_CATEGORY_GROUPS.map(g => g.label), 'Övrigt'])
-
 	tableData = computed<(CostRow | GroupHeader)[]>(() => {
-		const groups = new Map<string, CostRow[]>()
+		const groups = new Map<TopGroup, CostRow[]>()
 		for (const r of this.rows()) {
-			const g = this.groupLabel(r.category)
+			const g = this.groupOf(r.category)
 			if (!groups.has(g)) groups.set(g, [])
 			groups.get(g)!.push(r)
 		}
@@ -69,8 +72,8 @@ export class Costs {
 		const out: (CostRow | GroupHeader)[] = []
 		for (const g of this.groupOrder()) {
 			const rs = groups.get(g)
-			if (!rs || rs.length === 0) continue
-			out.push({ __kind: 'group', label: g, icon: this.groupIcon(rs[0].category) })
+			if (!rs?.length) continue
+			out.push({ __kind: 'group', group: g, label: this.groupLabel(g), icon: this.groupIcon(g) })
 			out.push(...rs)
 		}
 		return out
@@ -79,12 +82,9 @@ export class Costs {
 	isGroupRow = (_: number, item: CostRow | GroupHeader) => (item as any).__kind === 'group'
 	isDataRow = (_: number, item: CostRow | GroupHeader) => !(item as any).__kind
 
-	categoryChip(r: CostRow) {
-		return this.groupLabel(r.category)
-	}
-
 	displayedColumns = ['name', 'mikael', 'jessica', 'total'] as const
 
+	// Bygger raderna (aggregerar per titel)
 	rows = computed<CostRow[]>(() => {
 		const byTitle = new Map<string, CostRow>()
 
@@ -111,9 +111,10 @@ export class Costs {
 				row.jessicaAmount = e.amount ?? 0
 			}
 
-			row.category ??= e.category
+			row.category = e.category // ⬅︎ rakt på nya modellen
 			row.temporary = row.temporary || !!e.temporary
 			row.sort = Math.min(row.sort ?? Number.MAX_SAFE_INTEGER, e.sort ?? Number.MAX_SAFE_INTEGER)
+
 			byTitle.set(key, row)
 		}
 
@@ -125,9 +126,7 @@ export class Costs {
 	})
 
 	totals = computed(() => {
-		const rs = this.rows()
-		const active = rs.filter(r => !r.temporary)
-
+		const active = this.rows().filter(r => !r.temporary)
 		return {
 			mikael: active.reduce((s, r) => s + (r.mikaelAmount || 0), 0),
 			jessica: active.reduce((s, r) => s + (r.jessicaAmount || 0), 0),
@@ -137,11 +136,8 @@ export class Costs {
 
 	toCurrency(ore?: number) {
 		const v = Math.round((ore ?? 0) / 100)
-		return v.toLocaleString('sv-SE', {
-			style: 'currency',
-			currency: 'SEK',
-			minimumFractionDigits: 0,
-		})
+		return v.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 })
+		// alt: Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(v)
 	}
 
 	getRowTotal(r: CostRow) {
@@ -154,11 +150,7 @@ export class Costs {
 			this.dialog
 				.open(AddEditDialogComponent, {
 					height: '440px',
-					data: {
-						mode: 'cost',
-						uidMikael: 'mikael',
-						uidJessica: 'jessica',
-					},
+					data: { mode: 'cost', uidMikael: 'mikael', uidJessica: 'jessica' },
 				})
 				.afterClosed()
 		)) as DialogResult | undefined
@@ -217,7 +209,7 @@ export class Costs {
 				title: res.name,
 				amount,
 				person,
-				type: res.mode,
+				type: res.mode, // 'cost'
 				category: res.category,
 				temporary: !!res.temporary,
 			})
@@ -226,7 +218,7 @@ export class Costs {
 				title: res.name,
 				amount,
 				person,
-				type: res.mode,
+				type: res.mode, // 'cost'
 				category: res.category,
 				temporary: !!res.temporary,
 			})

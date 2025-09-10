@@ -7,17 +7,20 @@ import { MatButtonModule } from '@angular/material/button'
 import { MatIconModule } from '@angular/material/icon'
 import { MatSelectModule } from '@angular/material/select'
 import { MatCheckboxModule } from '@angular/material/checkbox'
+
 import {
 	Category,
 	CATEGORY_LABEL,
-	INCOME_CATEGORY_GROUPS,
-	EXPENSE_CATEGORY_GROUPS,
-	CategoryGroup,
+	INCOME_CATEGORIES,
+	EXPENSE_CATEGORIES,
+	topGroupOf,
+	TOPGROUP_LABEL,
+	TopGroup,
 } from './budget.model'
 
 export interface AddEditData {
 	id?: string
-	mode: 'cost' | 'income' // 👈 talar om om dialogen gäller kostnad/inkomst
+	mode: 'cost' | 'income'
 	name?: string
 	perUser?: Record<string, number>
 	category?: Category
@@ -25,6 +28,8 @@ export interface AddEditData {
 	uidMikael: string
 	uidJessica: string
 }
+
+type CategoryGroup = { label: string; items: Category[] }
 
 @Component({
 	selector: 'app-add-edit-cost-dialog',
@@ -73,10 +78,6 @@ export interface AddEditData {
 					</mat-select>
 				</mat-form-field>
 
-				<!-- Dessa hamnar sida vid sida med 12px gap på >=768px -->
-				<!-- ... -->
-				<!-- De andra fälten oförändrade -->
-
 				<div class="two-inputs">
 					<mat-form-field class="flex-1">
 						<mat-label>Mikael (kr/mån)</mat-label>
@@ -114,13 +115,11 @@ export interface AddEditData {
 				width: 100%;
 				gap: 8px;
 			}
-
 			.two-inputs {
 				display: flex;
 				width: 100%;
 				gap: 16px;
 			}
-
 			mat-dialog-content.mat-mdc-dialog-content {
 				padding-top: 8px !important;
 			}
@@ -132,17 +131,49 @@ export class AddEditDialogComponent {
 	data = inject<AddEditData>(MAT_DIALOG_DATA)
 
 	CATEGORY_LABEL = CATEGORY_LABEL
-	// Kategorier (svenska labels → engelska värden i modellen)
-	// Visa "Inkomst" först när mode === 'income'
-	categoryGroups = computed<CategoryGroup[]>(() =>
-		this.data.mode === 'income' ? INCOME_CATEGORY_GROUPS : EXPENSE_CATEGORY_GROUPS
-	)
 
-	private firstCategory = this.categoryGroups()[0]?.items[0] ?? Category.Other
+	// Stabil visningsordning för kostnadsgrupper
+	private EXPENSE_GROUP_ORDER: TopGroup[] = ['housing', 'food', 'transport', 'finance', 'savings', 'family', 'other']
+
+	// Bygg grupper dynamiskt från nya modellen
+	private buildGroups(mode: 'cost' | 'income'): CategoryGroup[] {
+		if (mode === 'income') {
+			return [{ label: TOPGROUP_LABEL.income, items: INCOME_CATEGORIES }]
+		}
+
+		// cost
+		const byGroup = new Map<TopGroup, Category[]>()
+		for (const c of EXPENSE_CATEGORIES) {
+			const g = topGroupOf(c)
+			if (g === 'income') continue // säkerhetsnät
+			if (!byGroup.has(g)) byGroup.set(g, [])
+			byGroup.get(g)!.push(c)
+		}
+
+		// sortera enligt önskad ordning, lägg till ev. nya grupper sist
+		const ordered: CategoryGroup[] = []
+		for (const g of this.EXPENSE_GROUP_ORDER) {
+			if (byGroup.has(g)) {
+				ordered.push({ label: TOPGROUP_LABEL[g], items: byGroup.get(g)! })
+				byGroup.delete(g)
+			}
+		}
+		// eventuella övriga grupper (t.ex. om du senare lägger till 'savings' som kostnadsvy)
+		for (const [g, items] of byGroup.entries()) {
+			ordered.push({ label: TOPGROUP_LABEL[g], items })
+		}
+		return ordered
+	}
+
+	categoryGroups = computed<CategoryGroup[]>(() => this.buildGroups(this.data.mode))
+
+	// Standardkategori per läge
+	private defaultCategory: Category =
+		this.data.mode === 'income' ? 'income.general' : this.categoryGroups()[0]?.items[0] ?? 'other.other'
 
 	form = {
 		name: this.data.name ?? '',
-		category: this.data.category ?? (this.data.mode === 'income' ? Category.Income : this.firstCategory),
+		category: (this.data.category ?? this.defaultCategory) as Category,
 		mikael: (this.data.perUser?.[this.data.uidMikael] ?? 0) / 100,
 		jessica: (this.data.perUser?.[this.data.uidJessica] ?? 0) / 100,
 		temporary: this.data.temporary ?? false,

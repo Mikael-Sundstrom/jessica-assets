@@ -12,7 +12,7 @@
 		</mat-cell>
 	</ng-container>
 
-	<!-- Utgift (utan drag-handle) -->
+	<!-- Utgift -->
 	<ng-container matColumnDef="name">
 		<mat-header-cell *matHeaderCellDef> Utgift </mat-header-cell>
 		<mat-cell *matCellDef="let r">
@@ -49,7 +49,7 @@
 
 	<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
-	<!-- Data-rad (vanlig klick för edit) -->
+	<!-- Data-rad (edit vid klick) -->
 	<mat-row
 		*matRowDef="let row; columns: displayedColumns; when: isDataRow"
 		class="striped-row"
