@@ -6,17 +6,12 @@ export type CostView = 'total' | 'grouped' | 'detailed'
 
 @Injectable({ providedIn: 'root' })
 export class BudgetSettingsService {
-	private storageKey = 'budget.settings.v4'
+	private storageKey = 'budget.settings.v5'
 
-	// Endast nya, rena inställningar
 	costView = signal<CostView>('grouped')
-
 	includeTemporary = signal(false)
 	costIncludeSavingsAsExpense = signal(false)
 	costIncludeAmortizationAsExpense = signal(false)
-
-	showMikael = signal(true)
-	showJessica = signal(true)
 
 	constructor() {
 		const raw = localStorage.getItem(this.storageKey)
@@ -29,8 +24,6 @@ export class BudgetSettingsService {
 					this.costIncludeSavingsAsExpense.set(s.costIncludeSavingsAsExpense)
 				if (typeof s.costIncludeAmortizationAsExpense === 'boolean')
 					this.costIncludeAmortizationAsExpense.set(s.costIncludeAmortizationAsExpense)
-				if (typeof s.showMikael === 'boolean') this.showMikael.set(s.showMikael)
-				if (typeof s.showJessica === 'boolean') this.showJessica.set(s.showJessica)
 			} catch {}
 		}
 
@@ -42,14 +35,11 @@ export class BudgetSettingsService {
 					includeTemporary: this.includeTemporary(),
 					costIncludeSavingsAsExpense: this.costIncludeSavingsAsExpense(),
 					costIncludeAmortizationAsExpense: this.costIncludeAmortizationAsExpense(),
-					showMikael: this.showMikael(),
-					showJessica: this.showJessica(),
 				})
 			)
 		})
 	}
 
-	// setters
 	setCostView(v: CostView) {
 		this.costView.set(v)
 	}
@@ -62,16 +52,9 @@ export class BudgetSettingsService {
 	setCostIncludeAmortizationAsExpense(v: boolean) {
 		this.costIncludeAmortizationAsExpense.set(v)
 	}
-	toggleMikael() {
-		this.showMikael.set(!this.showMikael())
-	}
-	toggleJessica() {
-		this.showJessica.set(!this.showJessica())
-	}
 
 	// helpers
 	isAmortization(cat: Category) {
 		return cat === 'finance.loan_amortization'
 	}
-	// isSavings(cat: Category) { return cat.startsWith('savings.'); } // för framtiden
 }
