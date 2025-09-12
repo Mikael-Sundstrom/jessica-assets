@@ -1,3 +1,4 @@
+// add-edit-dialog.component.ts
 import { Component, computed, inject } from '@angular/core'
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog'
 import { FormsModule } from '@angular/forms'
@@ -190,8 +191,8 @@ export class AddEditDialogComponent {
 			category: this.form.category as Category,
 			temporary: !!this.form.temporary,
 			perUser: {
-				[this.data.uidMikael]: Math.round((this.form.mikael || 0) * 100),
-				[this.data.uidJessica]: Math.round((this.form.jessica || 0) * 100),
+				[this.data.uidMikael]: Math.round((Number(this.form.mikael) || 0) * 100),
+				[this.data.uidJessica]: Math.round((Number(this.form.jessica) || 0) * 100),
 			},
 			mode: this.data.mode as 'cost' | 'income',
 		}

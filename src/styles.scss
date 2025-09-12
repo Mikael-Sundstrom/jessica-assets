@@ -1,5 +1,14 @@
 @use '@angular/material' as mat;
 
+@font-face {
+	font-family: 'Roboto Condensed';
+	src: url('/fonts/RobotoCondensed-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+
+	font-display: swap;
+}
+
 html {
 	@include mat.theme(
 		(
@@ -59,6 +68,27 @@ body {
 	)
 );
 
+@include mat.card-overrides(
+	(
+		elevated-container-shape: 4px,
+	)
+);
+
+@include mat.dialog-overrides(
+	(
+		container-shape: 30px,
+		container-elevation-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2),
+		subhead-size: 20px,
+		subhead-line-height: 30px,
+		container-max-width: 96vw,
+		content-padding: 0,
+		subhead-font: Roboto Condensed,
+	)
+);
+.mat-mdc-dialog-title {
+	text-align: center;
+}
+
 .btn-primary {
 	@include mat.button-overrides(
 		(
@@ -74,16 +104,14 @@ body {
 .budget-table {
 	@include mat.table-overrides(
 		(
-			// background-color: color-mix(in srgb, var(--mat-sys-primary) 20%, white),
-			row-item-label-text-size: 13px,
-			row-item-outline-color: var(--mat-sys-surface),
-			header-headline-size: 16px
+			row-item-label-text-size: 14px,
+			row-item-outline-color: var(--mat-sys-outline-variant),
 		)
 	);
 	.striped-row:nth-child(even) {
-		background-color: white;
+		background-color: var(--mat-sys-surface);
 	}
 	.striped-row:nth-child(odd) {
-		background-color: var(--mat-sys-surface);
+		background-color: white;
 	}
 }

@@ -27,11 +27,8 @@ export interface GroupDialogData {
 				table-layout: fixed; /* Viktigt för att bredder ska funka */
 				@include mat.table-overrides(
 					(
-						// background-color: color-mix(in srgb, var(--mat-sys-primary) 20%, white),
-						row-item-label-text-size: 13px,
-						header-headline-size: 14px,
-						row-item-container-height: 35px,
-						footer-supporting-text-weight: 600
+						row-item-label-text-font: Roboto Condensed,
+						footer-supporting-text-weight: 500,
 					)
 				);
 			}
@@ -58,16 +55,8 @@ export interface GroupDialogData {
 				white-space: nowrap;
 			}
 
-			.mat-mdc-dialog-title {
-				font-weight: 400;
-				text-align: center;
-				font-size: 20px;
-			}
-
 			mat-dialog-content {
-				max-height: 70vh;
-				overflow: auto;
-				padding: 0 !important;
+				font-family: Roboto-Condensed, sans-serif;
 			}
 		`,
 	],

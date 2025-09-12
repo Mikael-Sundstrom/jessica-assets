@@ -10,7 +10,6 @@ import { Income } from './income/income'
 	standalone: true,
 	imports: [MatTabsModule, MatProgressBarModule, Overview, Costs, Income],
 	templateUrl: './budget-shell.html',
-	styleUrl: './budget-shell.scss',
 })
 export class BudgetShell {
 	selectedIndex = signal(0)

@@ -72,7 +72,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		return resolved
 	}
 
-	chartHeight = computed(() => (this.cfg.costView() === 'detailed' ? 600 : 400))
+	chartHeight = computed(() => (this.cfg.costView() === 'detailed' ? 600 : 300))
 
 	readonly options = computed<ChartConfiguration<'bar'>['options']>(() => {
 		const isGrouped = this.cfg.costView() === 'grouped'
@@ -84,7 +84,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 			plugins: {
 				legend: { display: true, position: 'top' },
 				title: { display: true, text: 'Kostnader' },
-				tooltip: { enabled: false }, // 👈 rätt sätt att stänga av tooltip
+				tooltip: { enabled: false },
 			},
 			scales: {
 				x: {
@@ -99,7 +99,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 
 	// ————— Data-filter (samma) —————
 	private filteredCosts = computed(() => {
-		const includeTemp = this.cfg.includeTemporary()
+		const includeTemp = this.cfg.costIncludeTemporary()
 		const includeAmort = this.cfg.costIncludeAmortizationAsExpense()
 		const includeSavings = this.cfg.costIncludeSavingsAsExpense()
 		return this.svc.entries().filter(e => {
@@ -127,9 +127,9 @@ export class CostChart implements AfterViewInit, OnDestroy {
 			n
 		)
 	}
-	private sum(entries: HouseholdEntry[], person?: 'mikael' | 'jessica'): number {
+	/* private sum(entries: HouseholdEntry[], person?: 'mikael' | 'jessica'): number {
 		return entries.filter(e => (person ? e.person === person : true)).reduce((acc, e) => acc + e.amount, 0)
-	}
+	} */
 	private topGroupKey(cat: string): TopGroup {
 		return (cat.includes('.') ? cat.split('.')[0] : cat) as TopGroup
 	}
@@ -156,7 +156,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		}
 	}
 
-	private buildGrouped(): ChartData<'bar'> {
+	/* private buildGrouped(): ChartData<'bar'> {
 		const rows = this.filteredCosts()
 
 		// 1) Summera per toppgrupp
@@ -211,7 +211,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 				{ label: 'Jessica', data: dataJessica, backgroundColor: this.colorJessica(), borderWidth: 0 },
 			],
 		}
-	}
+	} */
 
 	// === Detaljerad med per-person-tröskel OCH lista över vad som hamnade i Övrigt ===
 	private buildDetailedWithOthers(): { chart: ChartData<'bar'>; others: GroupItem[]; othersLabel: string } {
@@ -223,7 +223,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 			buckets.get(key)![e.person] += e.amount
 		}
 
-		const LIMIT_CENTS = 400 * 100
+		const LIMIT_CENTS = 300 * 100
 		const OTHERS_KEY = `Övrigt (< ${LIMIT_CENTS / 100} kr)`
 		const others = { mikael: 0, jessica: 0 }
 		const othersItems: GroupItem[] = []
@@ -248,17 +248,27 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		}
 		if (others.mikael + others.jessica > 0) buckets.set(OTHERS_KEY, others)
 
+		othersItems.sort(
+			(a, b) =>
+				b.mikaelCents + b.jessicaCents - (a.mikaelCents + a.jessicaCents) || a.title.localeCompare(b.title)
+		)
+
 		const visibleTotal = (v: { mikael: number; jessica: number }) => v.mikael + v.jessica
 		const all = Array.from(buckets.entries())
 		const nonOthers = all.filter(([k]) => k !== OTHERS_KEY)
 		const filtered = nonOthers
 			.filter(([, v]) => visibleTotal(v) > 0)
 			.sort(([, a], [, b]) => visibleTotal(b) - visibleTotal(a))
+
 		const labels = filtered.map(([k]) => k)
 		if (buckets.has(OTHERS_KEY) && visibleTotal(buckets.get(OTHERS_KEY)!) > 0) labels.push(OTHERS_KEY)
 
 		const dataMikael = labels.map(k => this.toSek(buckets.get(k)!.mikael))
 		const dataJessica = labels.map(k => this.toSek(buckets.get(k)!.jessica))
+
+		const cleanedOthers = othersItems
+			.filter(i => i.mikaelCents + i.jessicaCents > 0)
+			.sort((a, b) => b.mikaelCents + b.jessicaCents - (a.mikaelCents + a.jessicaCents))
 
 		return {
 			chart: {
@@ -268,7 +278,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 					{ label: 'Jessica', data: dataJessica, backgroundColor: this.colorJessica(), borderWidth: 0 },
 				],
 			},
-			others: othersItems,
+			others: cleanedOthers,
 			othersLabel: OTHERS_KEY,
 		}
 	}
@@ -354,12 +364,10 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		const itemsByLabel: Record<string, GroupItem[]> = {}
 		for (const [g, titles] of byGroup.entries()) {
 			const label = TOPGROUP_LABEL[g]
-			const arr: GroupItem[] = Array.from(titles.entries()).map(([title, v]) => ({
-				title,
-				mikaelCents: v.mikael,
-				jessicaCents: v.jessica,
-			}))
-			arr.sort((a, b) => b.mikaelCents + b.jessicaCents - (a.mikaelCents + a.jessicaCents))
+			const arr: GroupItem[] = Array.from(titles.entries())
+				.map(([title, v]) => ({ title, mikaelCents: v.mikael, jessicaCents: v.jessica }))
+				.filter(it => it.mikaelCents + it.jessicaCents > 0)
+				.sort((a, b) => b.mikaelCents + b.jessicaCents - (a.mikaelCents + a.jessicaCents))
 			itemsByLabel[label] = arr
 		}
 

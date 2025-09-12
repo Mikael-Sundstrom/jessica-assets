@@ -15,6 +15,7 @@ import { BudgetSettingsService } from '../budget-settings.service'
 import { CostChart } from '../charts/cost-chart.component'
 import { TotalChart } from '../charts/total-chart.component'
 import { CostSettingsDialog, CostSettingsData } from './cost-settings-dialog'
+import { TotalSettingsData, TotalSettingsDialog } from './total-settings-dialog'
 
 @Component({
 	selector: 'app-overview',
@@ -39,26 +40,45 @@ export class Overview {
 	cols = computed(() => (this.narrow() ? 1 : 2))
 	totalColspan = computed(() => (this.cols() === 1 ? 1 : 2))
 
-	async openSettings() {
+	async openCostSettings() {
 		const data: CostSettingsData = {
 			view: this.cfg.costView(),
-			includeTemporary: this.cfg.includeTemporary(),
+			includeTemporary: this.cfg.costIncludeTemporary(),
 			includeAmortization: this.cfg.costIncludeAmortizationAsExpense(),
 			includeSavings: this.cfg.costIncludeSavingsAsExpense(),
 		}
-
 		const ref = this.dialog.open(CostSettingsDialog, {
 			data,
 			width: '560px',
 			maxWidth: '96vw',
+			height: '350px',
+			maxHeight: '80vh',
 		})
 		const res = await firstValueFrom(ref.afterClosed())
 		if (!res) return
-
-		// applicera valen
 		this.cfg.setCostView(res.view)
-		this.cfg.setIncludeTemporary(res.includeTemporary)
+		this.cfg.setCostIncludeTemporary(res.includeTemporary)
 		this.cfg.setCostIncludeAmortizationAsExpense(res.includeAmortization)
 		this.cfg.setCostIncludeSavingsAsExpense(res.includeSavings)
+	}
+
+	async openTotalSettings() {
+		const data: TotalSettingsData = {
+			includeTemporary: this.cfg.totalIncludeTemporary(),
+			includeAmortization: this.cfg.totalIncludeAmortizationAsExpense(),
+			includeSavings: this.cfg.totalIncludeSavingsAsExpense(),
+		}
+		const ref = this.dialog.open(TotalSettingsDialog, {
+			data,
+			width: '520px',
+			maxWidth: '96vw',
+			height: '290px',
+			maxHeight: '80vh',
+		})
+		const res = await firstValueFrom(ref.afterClosed())
+		if (!res) return
+		this.cfg.setTotalIncludeTemporary(res.includeTemporary)
+		this.cfg.setTotalIncludeAmortizationAsExpense(res.includeAmortization)
+		this.cfg.setTotalIncludeSavingsAsExpense(res.includeSavings)
 	}
 }

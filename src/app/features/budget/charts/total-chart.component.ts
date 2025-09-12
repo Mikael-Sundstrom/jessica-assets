@@ -1,5 +1,5 @@
 // app/features/charts/total-chart.component.ts
-import { Component, computed, inject, signal, ElementRef } from '@angular/core'
+import { Component, computed, inject, ElementRef } from '@angular/core' // signal togs bort, ej använd
 import { BaseChartDirective } from 'ng2-charts'
 import { ChartConfiguration, ChartData } from 'chart.js'
 import { BudgetService } from '../budget.service'
@@ -11,10 +11,8 @@ import { DOCUMENT } from '@angular/common'
 	standalone: true,
 	imports: [BaseChartDirective],
 	template: `
-		<!-- säkra höjden vid tab-byte -->
 		<canvas baseChart [data]="data()" [options]="options()" type="bar" [height]="300" class="total-chart"></canvas>
 	`,
-
 	styles: [
 		`
 			.total-chart {
@@ -30,7 +28,7 @@ export class TotalChart {
 	private doc = inject(DOCUMENT)
 	private host = inject(ElementRef<HTMLElement>)
 
-	// ===== Tema-färger (samma strategi som i CostChart) =====
+	// ===== Tema-färger =====
 	private resolveColor = (cssVarName: string): string => {
 		const probe = this.doc.createElement('div')
 		probe.style.display = 'none'
@@ -41,7 +39,7 @@ export class TotalChart {
 		return resolved || '#455a64'
 	}
 	private withAlpha = (rgbOrHex: string, a: number) =>
-		rgbOrHex.startsWith('rgb(') ? rgbOrHex.replace('rgb(', 'rgba(').replace(')', `, ${a})`) : rgbOrHex // låt hex vara oförändrat
+		rgbOrHex.startsWith('rgb(') ? rgbOrHex.replace('rgb(', 'rgba(').replace(')', `, ${a})`) : rgbOrHex
 
 	private colorMikael = computed(() => this.resolveColor('--mat-sys-tertiary'))
 	private colorJessica = computed(() => this.resolveColor('--mat-sys-primary'))
@@ -53,39 +51,42 @@ export class TotalChart {
 		maintainAspectRatio: false,
 		plugins: {
 			legend: { display: false, position: 'top' },
-			title: { display: true, text: 'Netto (inkomster - kostnader)' },
+			title: { display: true, text: 'Resultat' },
+			subtitle: { display: true, text: '' },
 			tooltip: {
-				callbacks: {
-					label: ctx => this.formatCurrency(Number(ctx.parsed.y)),
-				},
+				callbacks: { label: ctx => this.formatCurrency(Number(ctx.parsed.y)) },
 			},
 		},
 		scales: {
-			y: {
-				ticks: { callback: v => this.formatCurrency(Number(v)) },
-			},
+			y: { ticks: { callback: v => this.formatCurrency(Number(v)) } },
 		},
 	}))
 
 	private toSek = (cents: number) => Math.round(cents) / 100
 
-	// Beräkna netto per person med/utan tillfälligt
+	// ===== Netto: styrs av TOTAL-TOGGLARNA =====
 	private computeNet(includeTemporary: boolean) {
-		const includeAmort = this.cfg.costIncludeAmortizationAsExpense()
-		const includeSavings = this.cfg.costIncludeSavingsAsExpense()
+		const includeAmort = this.cfg.totalIncludeAmortizationAsExpense()
+		const savingsAsExpense = this.cfg.totalIncludeSavingsAsExpense()
 		const all = this.svc.entries()
 
-		const isCost = (c: (typeof all)[number]) => {
-			if (c.type !== 'cost') return false
-			if (!includeTemporary && c.temporary) return false
-			if (!includeAmort && c.category === 'finance.loan_amortization') return false
-			if (!includeSavings && c.category.startsWith('savings.')) return false
+		const isSavings = (e: (typeof all)[number]) => e.type === 'cost' && e.category?.startsWith('savings.')
+
+		// Kostnader: exkludera amortering om togglen är av, och exkludera sparande om det inte ska vara utgift
+		const isCost = (e: (typeof all)[number]) => {
+			if (e.type !== 'cost') return false
+			if (!includeTemporary && e.temporary) return false
+			if (!includeAmort && e.category === 'finance.loan_amortization') return false
+			if (!savingsAsExpense && isSavings(e)) return false
 			return true
 		}
-		const isIncome = (c: (typeof all)[number]) => {
-			if (c.type !== 'income') return false
-			if (!includeTemporary && c.temporary) return false
-			return true
+
+		// Inkomster: vanliga inkomster + (ev) sparande om det inte ska räknas som utgift
+		const isIncome = (e: (typeof all)[number]) => {
+			if (!includeTemporary && e.temporary) return false
+			if (e.type === 'income') return true
+			if (!savingsAsExpense && isSavings(e)) return true
+			return false
 		}
 
 		const sum = (pred: (x: (typeof all)[number]) => boolean, person?: 'mikael' | 'jessica') =>
@@ -105,11 +106,11 @@ export class TotalChart {
 		return { netM, netJ, netT }
 	}
 
-	// Data: alltid "Utan tillfälligt". Om togglad: lägg till "Med tillfälligt".
+	// Data: “Utan tillfälligt” alltid. Visa “Med tillfälligt” om TOTAL-toggle är på.
 	readonly data = computed<ChartData<'bar'>>(() => {
-		const base = this.computeNet(false) // utan tillfälligt
-		const temp = this.computeNet(true) // med tillfälligt
-		const showTemp = this.cfg.includeTemporary()
+		const base = this.computeNet(false)
+		const temp = this.computeNet(true)
+		const showTemp = this.cfg.totalIncludeTemporary()
 
 		const labels = ['Mikael', 'Jessica', 'Totalt']
 		const datasets: ChartData<'bar'>['datasets'] = [
@@ -138,10 +139,8 @@ export class TotalChart {
 	})
 
 	private formatCurrency(n: number): string {
-		return new Intl.NumberFormat('sv-SE', {
-			style: 'currency',
-			currency: 'SEK',
-			maximumFractionDigits: 0,
-		}).format(n)
+		return new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(
+			n
+		)
 	}
 }
