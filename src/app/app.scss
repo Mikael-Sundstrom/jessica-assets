@@ -1,3 +1,9 @@
+.app-toolbar {
+	--mat-toolbar-container-background-color: var(--mat-sys-primary);
+	--mat-toolbar-container-text-color: var(--mat-sys-on-primary);
+	--mat-icon-color: var(--mat-sys-on-primary);
+}
+
 .title {
 	font-weight: 500;
 }
@@ -8,27 +14,23 @@
 }
 
 button {
-	padding: 0;
-	&.avatar-btn img,
-	&.avatar-btn .avatar-initials {
-		width: 32px;
-		height: 32px;
-		padding: 4px;
-		border-radius: 50%;
-		display: inline-grid;
-		place-items: center;
-		background: var(--sys-secondary-container);
-		color: var(--sys-on-secondary-container);
-		font-weight: 600;
-		font-size: 0.8rem;
-	}
-}
+	&.avatar-btn {
+		padding: 0;
 
-/* app.scss */
-.app-toolbar {
-	--mat-toolbar-container-background-color: var(--mat-sys-primary);
-	--mat-toolbar-container-text-color: var(--mat-sys-on-primary);
-	--mat-icon-color: var(--mat-sys-on-primary);
+		img,
+		.avatar-initials {
+			width: 32px;
+			height: 32px;
+			padding: 4px;
+			border-radius: 50%;
+			display: inline-grid;
+			place-items: center;
+			background: var(--sys-secondary-container);
+			color: var(--sys-on-secondary-container);
+			font-weight: 600;
+			font-size: 0.8rem;
+		}
+	}
 }
 
 .theme-picker {

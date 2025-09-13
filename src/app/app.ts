@@ -31,21 +31,37 @@ export class App {
 
 	user = computed(() => this.auth.currentUser())
 
-	// 🔑 Gör URL:en reaktiv
-	url = toSignal(
+	// Title och bakåtknapp
+	showBack = computed(() => {
+		const data = typeof this.routeData() === 'function' ? (this.routeData() as any)() : this.routeData()
+		return !!data.back
+	})
+	showCenterTitle = computed(() => {
+		const data = typeof this.routeData() === 'function' ? (this.routeData() as any)() : this.routeData()
+		return !!data.center
+	})
+	private routeData = toSignal(
 		this.router.events.pipe(
 			filter(e => e instanceof NavigationEnd),
-			map(() => this.router.url),
-			startWith(this.router.url)
+			map(() => {
+				let r = this.router.routerState.root
+				while (r.firstChild) r = r.firstChild
+				const data = r.snapshot.data
+				return typeof data === 'object' && data !== null ? data : {}
+			}),
+			startWith(() => {
+				let r = this.router.routerState.root
+				while ((r as any).firstChild) r = (r as any).firstChild!
+				const data = r.snapshot.data
+				return typeof data === 'object' && data !== null ? data : {}
+			})
 		),
-		{ initialValue: this.router.url }
+		{ initialValue: {} as { title?: string; back?: boolean; center?: boolean } }
 	)
-
-	isBudget = computed(() => this.url().startsWith('/budget'))
-	title = computed(() => (this.isBudget() ? 'Budget' : 'Jessicas loggbok'))
-	showBack = computed(() => this.isBudget())
-	showCenterTitle = computed(() => this.isBudget())
-
+	title = computed(() => {
+		const data = typeof this.routeData() === 'function' ? (this.routeData() as any)() : this.routeData()
+		return data.title ?? 'App'
+	})
 	initials = computed(() => {
 		const n = this.user()?.displayName?.trim() || this.user()?.email || ''
 		return n

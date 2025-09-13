@@ -1,5 +1,5 @@
 // app/features/charts/group-dialog.component.ts
-import { Component, inject } from '@angular/core'
+import { Component, computed, inject } from '@angular/core'
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog'
 import { MatButtonModule } from '@angular/material/button'
 import { MatIconModule } from '@angular/material/icon'
@@ -55,7 +55,9 @@ export interface GroupDialogData {
 				<!-- Header, body och footer -->
 				<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
 				<tr mat-row *matRowDef="let row; columns: displayedColumns" class="striped-row"></tr>
+				@if (showFooter()) {
 				<tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
+				}
 			</table>
 		</mat-dialog-content>
 	`,
@@ -64,11 +66,14 @@ export class GroupDialogComponent {
 	data = inject<GroupDialogData>(MAT_DIALOG_DATA)
 	displayedColumns = ['title', 'mikael', 'jessica', 'total']
 
+	readonly showFooter = computed(() => (this.data.items?.length ?? 0) > 1)
+
 	private nf = new Intl.NumberFormat('sv-SE', {
 		style: 'currency',
 		currency: 'SEK',
 		maximumFractionDigits: 0,
 	})
+
 	format = (cents: number) => this.nf.format(Math.round(cents) / 100)
 
 	sum(which: 'mikael' | 'jessica' | 'total'): number {

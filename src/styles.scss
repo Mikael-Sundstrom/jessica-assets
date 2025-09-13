@@ -77,12 +77,12 @@ body {
 @include mat.dialog-overrides(
 	(
 		container-shape: 30px,
-		container-elevation-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2),
-		subhead-size: 20px,
+		container-elevation-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3),
+		subhead-font: Roboto Condensed,
+		subhead-size: 19px,
 		subhead-line-height: 30px,
 		container-max-width: 96vw,
 		content-padding: 0,
-		subhead-font: Roboto Condensed,
 	)
 );
 .mat-mdc-dialog-title {
@@ -133,3 +133,11 @@ body {
 .mat-mdc-dialog-content .stack-toggle .mat-mdc-slide-toggle .mdc-label {
 	padding-inline-start: 12px;
 }
+
+@include mat.toolbar-overrides(
+	(
+		title-text-size: 20px,
+		standard-height: 60px,
+		mobile-height: 60px,
+	)
+);

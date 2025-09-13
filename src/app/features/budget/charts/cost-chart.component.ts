@@ -5,7 +5,7 @@ import { ChartConfiguration, ChartData } from 'chart.js'
 import { MatDialog } from '@angular/material/dialog'
 import { BudgetService } from '../budget.service'
 import { BudgetSettingsService } from '../budget-settings.service'
-import { TOPGROUP_LABEL, HouseholdEntry, TopGroup } from '../budget.model'
+import { TOPGROUP_LABEL, TopGroup } from '../budget.model'
 import { DOCUMENT } from '@angular/common'
 import { GroupDialogComponent, GroupItem } from './group-dialog.component'
 
@@ -75,23 +75,29 @@ export class CostChart implements AfterViewInit, OnDestroy {
 	chartHeight = computed(() => (this.cfg.costView() === 'detailed' ? 600 : 300))
 
 	readonly options = computed<ChartConfiguration<'bar'>['options']>(() => {
-		const isGrouped = this.cfg.costView() === 'grouped'
+		const view = this.cfg.costView() as View
+		const isGrouped = view === 'grouped'
+
 		return {
 			responsive: true,
 			maintainAspectRatio: false,
-			resizeDelay: 0,
 			indexAxis: 'y',
+			// Endast klick i detailed, annars vanlig händelsehantering
+			events: view === 'detailed' ? ['click'] : undefined,
+
 			plugins: {
-				legend: { display: true, position: 'top' },
+				legend: { display: view !== 'total', position: 'top' },
 				title: { display: true, text: 'Kostnader' },
-				tooltip: { enabled: false },
+				tooltip: {
+					enabled: view !== 'grouped', // total + detailed: ja, grouped: nej
+					callbacks:
+						view === 'total'
+							? { label: ctx => `${ctx.label}: ${this.formatCurrency(Number(ctx.parsed.x))}` }
+							: { label: ctx => `${ctx.dataset.label}: ${this.formatCurrency(Number(ctx.parsed.x))}` },
+				},
 			},
 			scales: {
-				x: {
-					stacked: isGrouped,
-					beginAtZero: true,
-					ticks: { callback: v => this.formatCurrency(Number(v)) },
-				},
+				x: { stacked: isGrouped, beginAtZero: true, ticks: { callback: v => this.formatCurrency(Number(v)) } },
 				y: { stacked: isGrouped },
 			},
 		}
@@ -344,36 +350,33 @@ export class CostChart implements AfterViewInit, OnDestroy {
 	}
 
 	// ——— Klick på diagrammet: öppna dialog om användaren klickade på Övrigt ———
-	onChartClick(evt: { event?: import('chart.js').ChartEvent; active?: any[] }) {
-		const data = this.data()
-		const labels = (data.labels ?? []) as string[]
-		const idx = evt?.active?.[0]?.index
-		if (typeof idx !== 'number') return
-
-		const clicked = labels[idx]
+	onChartClick(evt: { event?: any; active?: any[] }) {
 		const view = this.cfg.costView() as View
+		const chart = this.chart?.chart
+		if (!chart || !evt?.event) return
 
-		// —— TOTAL —— //
-		if (view === 'total') {
-			const all = this.allItemsByTitle()
-			let items: GroupItem[] = all
-			if (clicked === 'Mikael') {
-				items = all.map(i => ({ ...i, jessicaCents: 0 })).filter(i => i.mikaelCents > 0)
-			} else if (clicked === 'Jessica') {
-				items = all.map(i => ({ ...i, mikaelCents: 0 })).filter(i => i.jessicaCents > 0)
-			}
-			if (items.length) {
-				this.dialog.open(GroupDialogComponent, { data: { groupLabel: clicked, items } })
-			}
+		// Plocka MouseEvent från ChartEvent (ng2-charts lägger den på .native)
+		const mouse: MouseEvent = (evt.event.native ?? evt.event) as MouseEvent
+
+		// Hitta närmaste stapel på Y-axeln och kräva träff (ingen “mellan raderna”)
+		const elems = chart.getElementsAtEventForMode(mouse, 'nearest', { axis: 'y', intersect: true }, true)
+		if (!elems.length) {
+			// klick i tomrum -> bara stäng ev. aktiv tooltip och avbryt
+			chart.setActiveElements([])
+			chart.update()
 			return
 		}
 
-		// —— GROUPED —— //
+		const { datasetIndex, index } = elems[0]
+		const labels = chart.data.labels as string[]
+		const clickedLabel = labels?.[index]
+
+		// —— GROUPED: öppna dialog för vald grupp —— //
 		if (view === 'grouped') {
 			const g = this.groupedInfo()
-			const items = g.itemsByLabel[clicked]
+			const items = g.itemsByLabel[clickedLabel]
 			if (items?.length) {
-				this.dialog.open(GroupDialogComponent, { data: { groupLabel: clicked, items } })
+				this.dialog.open(GroupDialogComponent, { data: { groupLabel: clickedLabel, items } })
 			}
 			return
 		}
@@ -382,21 +385,27 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		if (view === 'detailed') {
 			const info = this.detailedInfo()
 
-			// Övrigt → öppna hela listan
-			if (clicked === info.othersLabel && info.others.length > 0) {
+			// Öppna dialog endast för “Övrigt”
+			if (clickedLabel === info.othersLabel && info.others.length > 0) {
 				this.dialog.open(GroupDialogComponent, { data: { groupLabel: info.othersLabel, items: info.others } })
 				return
 			}
 
-			// Valfri rad → öppna som enkelpost (värdena hämtas direkt från chart-datat för att matcha stapeln)
-			const dsM = (data.datasets?.[0]?.data as number[]) ?? []
-			const dsJ = (data.datasets?.[1]?.data as number[]) ?? []
-			const item: GroupItem = {
-				title: clicked,
-				mikaelCents: Math.round((dsM[idx] ?? 0) * 100),
-				jessicaCents: Math.round((dsJ[idx] ?? 0) * 100),
-			}
-			this.dialog.open(GroupDialogComponent, { data: { groupLabel: clicked, items: [item] } })
+			// Annars: visa tooltip på *exakt* vald rad (båda datasets vid index)
+			const active = chart.data.datasets.map((_, di) => ({ datasetIndex: di, index }))
+			chart.setActiveElements(active)
+			// placera tooltip vid klickpunkten
+			;(chart as any).tooltip?.setActiveElements?.(active, { x: mouse.offsetX, y: mouse.offsetY })
+			chart.update()
+			return
+		}
+
+		// —— TOTAL: endast tooltip —— //
+		if (view === 'total') {
+			const active = [{ datasetIndex, index }]
+			chart.setActiveElements(active)
+			;(chart as any).tooltip?.setActiveElements?.(active, { x: mouse.offsetX, y: mouse.offsetY })
+			chart.update()
 		}
 	}
 
