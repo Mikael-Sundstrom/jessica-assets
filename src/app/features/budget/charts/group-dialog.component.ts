@@ -19,47 +19,6 @@ export interface GroupDialogData {
 	selector: 'app-group-dialog',
 	standalone: true,
 	imports: [MatDialogModule, MatButtonModule, MatIconModule, MatTableModule],
-	styles: [
-		`
-			@use '@angular/material' as mat;
-			table {
-				width: 100%;
-				table-layout: fixed; /* Viktigt för att bredder ska funka */
-				@include mat.table-overrides(
-					(
-						row-item-label-text-font: Roboto Condensed,
-						footer-supporting-text-weight: 500,
-					)
-				);
-			}
-
-			/* Titel-kolumnen tar all plats som blir kvar */
-			.mat-column-title {
-				width: auto;
-				padding-right: 8px;
-				white-space: normal;
-				word-break: break-word;
-			}
-
-			/* Mikael, Jessica och Summa med fasta bredder */
-			.mat-column-mikael,
-			.mat-column-jessica,
-			.mat-column-total {
-				width: 90px;
-				text-align: right;
-			}
-
-			/* Gör så att rubriktext inte klipps */
-			th.mat-header-cell {
-				overflow: visible;
-				white-space: nowrap;
-			}
-
-			mat-dialog-content {
-				font-family: Roboto-Condensed, sans-serif;
-			}
-		`,
-	],
 	template: `
 		<h2 mat-dialog-title>{{ data.groupLabel }}</h2>
 
@@ -99,13 +58,6 @@ export interface GroupDialogData {
 				<tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
 			</table>
 		</mat-dialog-content>
-
-		<!-- <mat-dialog-actions align="end">
-			<button mat-button mat-dialog-close>
-				<mat-icon>close</mat-icon>
-				Stäng
-			</button>
-		</mat-dialog-actions> -->
 	`,
 })
 export class GroupDialogComponent {

@@ -92,11 +92,25 @@ body {
 .btn-primary {
 	@include mat.button-overrides(
 		(
-			protected-container-color: color-mix(in srgb, var(--mat-sys-secondary) 20%, white),
-			protected-label-text-color: var(--mat-sys-secondary),
-			protected-container-shape: 4px,
-			protected-container-height: 46px,
-			protected-label-text-size: 16px,
+			protected-container-color: color-mix(in srgb, var(--mat-sys-primary) 100%, white),
+			protected-label-text-color: var(--mat-sys-on-secondary),
+		)
+	);
+}
+
+.btn-cancel {
+	@include mat.button-overrides(
+		(
+			text-label-text-color: var(--mat-sys-secondary),
+		)
+	);
+}
+
+.btn-delete,
+.btn-card-settings {
+	@include mat.icon-button-overrides(
+		(
+			icon-color: var(--mat-sys-secondary),
 		)
 	);
 }
@@ -106,6 +120,7 @@ body {
 		(
 			row-item-label-text-size: 14px,
 			row-item-outline-color: var(--mat-sys-outline-variant),
+			row-item-label-text-font: Roboto Condensed,
 		)
 	);
 	.striped-row:nth-child(even) {
@@ -114,4 +129,7 @@ body {
 	.striped-row:nth-child(odd) {
 		background-color: white;
 	}
+}
+.mat-mdc-dialog-content .stack-toggle .mat-mdc-slide-toggle .mdc-label {
+	padding-inline-start: 12px;
 }

@@ -1,5 +1,5 @@
 // add-edit-dialog.component.ts
-import { Component, computed, inject } from '@angular/core'
+import { Component, computed, inject, signal } from '@angular/core'
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog'
 import { FormsModule } from '@angular/forms'
 import { MatFormFieldModule } from '@angular/material/form-field'
@@ -98,11 +98,23 @@ type CategoryGroup = { label: string; items: Category[] }
 		</mat-dialog-content>
 
 		<mat-dialog-actions align="end">
-			@if (data.id) {
-			<button mat-button type="button" class="text-red-600" (click)="remove()">Radera</button>
+			@if (data.id) { @if (!confirmingDelete()) {
+			<button mat-icon-button type="button" (click)="startDelete()" class="btn-delete" aria-label="Ta bort">
+				<mat-icon>delete</mat-icon>
+			</button>
+			} @else {
+			<span class="confirm-delete">
+				<span class="label">Ta bort posten?</span>
+				<span class="spacer"></span>
+				<button mat-button type="button" (click)="cancelDeleteConfirm()" class="btn-cancel">Nej</button>
+				<button mat-raised-button type="button" (click)="remove()" class="btn-primary">Ja, ta bort</button>
+			</span>
+			} } @if (!confirmingDelete()) {
+			<span class="spacer"></span>
+
+			<button mat-button type="button" (click)="close()" class="btn-cancel">Avbryt</button>
+			<button mat-raised-button (click)="save()" class="btn-primary">Spara</button>
 			}
-			<button mat-button type="button" (click)="close()">Avbryt</button>
-			<button mat-button (click)="save()">Spara</button>
 		</mat-dialog-actions>
 	`,
 	styles: [
@@ -124,12 +136,22 @@ type CategoryGroup = { label: string; items: Category[] }
 			mat-dialog-content.mat-mdc-dialog-content {
 				padding-top: 8px !important;
 			}
+
+			.confirm-delete {
+				display: inline-flex;
+				gap: 8px;
+				align-items: center;
+			}
+			.confirm-delete .label {
+				opacity: 0.8;
+			}
 		`,
 	],
 })
 export class AddEditDialogComponent {
 	dialogRef = inject(MatDialogRef<AddEditDialogComponent>)
 	data = inject<AddEditData>(MAT_DIALOG_DATA)
+	confirmingDelete = signal(false)
 
 	CATEGORY_LABEL = CATEGORY_LABEL
 
@@ -178,6 +200,13 @@ export class AddEditDialogComponent {
 		mikael: (this.data.perUser?.[this.data.uidMikael] ?? 0) / 100,
 		jessica: (this.data.perUser?.[this.data.uidJessica] ?? 0) / 100,
 		temporary: this.data.temporary ?? false,
+	}
+
+	startDelete() {
+		this.confirmingDelete.set(true)
+	}
+	cancelDeleteConfirm() {
+		this.confirmingDelete.set(false)
 	}
 
 	remove() {

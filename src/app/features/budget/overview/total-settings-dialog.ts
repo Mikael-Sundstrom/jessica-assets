@@ -22,29 +22,40 @@ export interface TotalSettingsData {
 				gap: 0.75rem;
 				margin-top: 0.75rem;
 			}
+			.stack-toggle {
+				display: grid;
+				gap: 12px;
+				margin-inline: auto;
+			}
 		`,
 	],
 	template: `
 		<h2 mat-dialog-title>Diagraminställningar (Netto)</h2>
 		<mat-dialog-content>
 			<div class="stack">
-				<mat-slide-toggle [checked]="includeTemporary()" (change)="includeTemporary.set($event.checked)">
-					Inkludera tillfälligt
-				</mat-slide-toggle>
+				<div class="stack-toggle">
+					<mat-slide-toggle [checked]="includeTemporary()" (change)="includeTemporary.set($event.checked)">
+						Inkludera tillfälligt
+					</mat-slide-toggle>
 
-				<mat-slide-toggle [checked]="includeAmortization()" (change)="includeAmortization.set($event.checked)">
-					Räkna amortering som utgift
-				</mat-slide-toggle>
+					<mat-slide-toggle
+						[checked]="includeAmortization()"
+						(change)="includeAmortization.set($event.checked)"
+					>
+						Räkna amortering som utgift
+					</mat-slide-toggle>
 
-				<mat-slide-toggle [checked]="includeSavings()" (change)="includeSavings.set($event.checked)">
-					Räkna sparande som utgift
-				</mat-slide-toggle>
+					<mat-slide-toggle [checked]="includeSavings()" (change)="includeSavings.set($event.checked)">
+						Räkna sparande som utgift
+					</mat-slide-toggle>
+				</div>
 			</div>
 		</mat-dialog-content>
 
 		<mat-dialog-actions align="end">
-			<button mat-button mat-dialog-close><mat-icon>close</mat-icon>Avbryt</button>
-			<button mat-raised-button (click)="save()"><mat-icon>check</mat-icon>Spara</button>
+			<button mat-button mat-dialog-close class="btn-cancel"><mat-icon>close</mat-icon>Avbryt</button>
+			<span class="spacer"></span>
+			<button mat-raised-button (click)="save()" class="btn-primary"><mat-icon>check</mat-icon>Spara</button>
 		</mat-dialog-actions>
 	`,
 })

@@ -127,9 +127,7 @@ export class CostChart implements AfterViewInit, OnDestroy {
 			n
 		)
 	}
-	/* private sum(entries: HouseholdEntry[], person?: 'mikael' | 'jessica'): number {
-		return entries.filter(e => (person ? e.person === person : true)).reduce((acc, e) => acc + e.amount, 0)
-	} */
+
 	private topGroupKey(cat: string): TopGroup {
 		return (cat.includes('.') ? cat.split('.')[0] : cat) as TopGroup
 	}
@@ -155,63 +153,6 @@ export class CostChart implements AfterViewInit, OnDestroy {
 			],
 		}
 	}
-
-	/* private buildGrouped(): ChartData<'bar'> {
-		const rows = this.filteredCosts()
-
-		// 1) Summera per toppgrupp
-		const groups = new Map<TopGroup, { mikael: number; jessica: number }>()
-		for (const e of rows) {
-			const g = this.topGroupKey(e.category) // -> TopGroup
-			if (!groups.has(g)) groups.set(g, { mikael: 0, jessica: 0 })
-			groups.get(g)![e.person] += e.amount
-		}
-
-		// 2) Flytta smågrupper (< 500 kr total) till befintlig 'other' (Övrigt)
-		const LIMIT_CENTS = 500 * 100
-		const OTHER_KEY: TopGroup = 'other'
-		if (!groups.has(OTHER_KEY)) groups.set(OTHER_KEY, { mikael: 0, jessica: 0 })
-
-		for (const [key, val] of Array.from(groups.entries())) {
-			if (key === OTHER_KEY) continue
-			const total = val.mikael + val.jessica
-			if (total > 0 && total < LIMIT_CENTS) {
-				const o = groups.get(OTHER_KEY)!
-				o.mikael += val.mikael
-				o.jessica += val.jessica
-				groups.delete(key)
-			}
-		}
-
-		// 3) Sortera kvarvarande grupper (störst först) och lägg Övrigt sist
-		const keys = Array.from(groups.keys())
-			.filter(k => k !== OTHER_KEY)
-			.sort((a, b) => {
-				const A = groups.get(a)!
-				const B = groups.get(b)!
-				return B.mikael + B.jessica - (A.mikael + A.jessica)
-			})
-
-		const labels: string[] = keys.map(k => TOPGROUP_LABEL[k])
-		const dataMikael: number[] = keys.map(k => this.toSek(groups.get(k)!.mikael))
-		const dataJessica: number[] = keys.map(k => this.toSek(groups.get(k)!.jessica))
-
-		// 4) Övrigt sist (endast om > 0)
-		const other = groups.get(OTHER_KEY)!
-		if (other.mikael + other.jessica > 0) {
-			labels.push(TOPGROUP_LABEL[OTHER_KEY]) // "Övrigt"
-			dataMikael.push(this.toSek(other.mikael))
-			dataJessica.push(this.toSek(other.jessica))
-		}
-
-		return {
-			labels,
-			datasets: [
-				{ label: 'Mikael', data: dataMikael, backgroundColor: this.colorMikael(), borderWidth: 0 },
-				{ label: 'Jessica', data: dataJessica, backgroundColor: this.colorJessica(), borderWidth: 0 },
-			],
-		}
-	} */
 
 	// === Detaljerad med per-person-tröskel OCH lista över vad som hamnade i Övrigt ===
 	private buildDetailedWithOthers(): { chart: ChartData<'bar'>; others: GroupItem[]; othersLabel: string } {
@@ -383,30 +324,79 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		}
 	}
 
-	// ——— Klick på diagrammet: öppna dialog om användaren klickade på Övrigt ———
-	onChartClick(evt: { event?: import('chart.js').ChartEvent; active?: object[] }) {
-		const labels = (this.data().labels ?? []) as string[]
-		const idx = (evt?.active?.[0] as any)?.index
-		if (typeof idx !== 'number') return
-		const clicked = labels[idx]
-		const view = this.cfg.costView()
+	private allItemsByTitle(): GroupItem[] {
+		const rows = this.filteredCosts()
+		const buckets = new Map<string, { mikael: number; jessica: number }>()
 
-		if (view === 'grouped') {
-			const g = this.groupedInfo()
-			const items = g.itemsByLabel[clicked]
-			if (items?.length) {
-				this.dialog.open(GroupDialogComponent, {
-					data: { groupLabel: clicked, items },
-				})
+		for (const e of rows) {
+			const t = e.title || '(utan titel)'
+			if (!buckets.has(t)) buckets.set(t, { mikael: 0, jessica: 0 })
+			buckets.get(t)![e.person] += e.amount
+		}
+
+		return Array.from(buckets.entries())
+			.map(([title, v]) => ({ title, mikaelCents: v.mikael, jessicaCents: v.jessica }))
+			.filter(i => i.mikaelCents + i.jessicaCents > 0)
+			.sort(
+				(a, b) =>
+					b.mikaelCents + b.jessicaCents - (a.mikaelCents + a.jessicaCents) || a.title.localeCompare(b.title)
+			)
+	}
+
+	// ——— Klick på diagrammet: öppna dialog om användaren klickade på Övrigt ———
+	onChartClick(evt: { event?: import('chart.js').ChartEvent; active?: any[] }) {
+		const data = this.data()
+		const labels = (data.labels ?? []) as string[]
+		const idx = evt?.active?.[0]?.index
+		if (typeof idx !== 'number') return
+
+		const clicked = labels[idx]
+		const view = this.cfg.costView() as View
+
+		// —— TOTAL —— //
+		if (view === 'total') {
+			const all = this.allItemsByTitle()
+			let items: GroupItem[] = all
+			if (clicked === 'Mikael') {
+				items = all.map(i => ({ ...i, jessicaCents: 0 })).filter(i => i.mikaelCents > 0)
+			} else if (clicked === 'Jessica') {
+				items = all.map(i => ({ ...i, mikaelCents: 0 })).filter(i => i.jessicaCents > 0)
+			}
+			if (items.length) {
+				this.dialog.open(GroupDialogComponent, { data: { groupLabel: clicked, items } })
 			}
 			return
 		}
 
+		// —— GROUPED —— //
+		if (view === 'grouped') {
+			const g = this.groupedInfo()
+			const items = g.itemsByLabel[clicked]
+			if (items?.length) {
+				this.dialog.open(GroupDialogComponent, { data: { groupLabel: clicked, items } })
+			}
+			return
+		}
+
+		// —— DETAILED —— //
 		if (view === 'detailed') {
 			const info = this.detailedInfo()
+
+			// Övrigt → öppna hela listan
 			if (clicked === info.othersLabel && info.others.length > 0) {
 				this.dialog.open(GroupDialogComponent, { data: { groupLabel: info.othersLabel, items: info.others } })
+				return
 			}
+
+			// Valfri rad → öppna som enkelpost (värdena hämtas direkt från chart-datat för att matcha stapeln)
+			const dsM = (data.datasets?.[0]?.data as number[]) ?? []
+			const dsJ = (data.datasets?.[1]?.data as number[]) ?? []
+			const item: GroupItem = {
+				title: clicked,
+				mikaelCents: Math.round((dsM[idx] ?? 0) * 100),
+				jessicaCents: Math.round((dsJ[idx] ?? 0) * 100),
+			}
+			this.dialog.open(GroupDialogComponent, { data: { groupLabel: clicked, items: [item] } })
 		}
 	}
 

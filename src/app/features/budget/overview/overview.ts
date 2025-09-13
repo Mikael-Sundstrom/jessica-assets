@@ -51,7 +51,7 @@ export class Overview {
 			data,
 			width: '560px',
 			maxWidth: '96vw',
-			height: '350px',
+			height: '355px',
 			maxHeight: '80vh',
 		})
 		const res = await firstValueFrom(ref.afterClosed())

@@ -22,16 +22,11 @@
 	flex-wrap: wrap;
 }
 
-/* gör det enkelt att positionera knappen */
-.chart-card {
-	position: relative;
-}
-
 /* flytande knapp uppe till höger */
-.card-action {
+.btn-card-settings {
 	position: absolute;
 	top: 12px;
-	right: 12px;
+	left: 12px;
 	z-index: 2; /* ovanpå canvas */
 	box-shadow: var(--mat-elevation-level3);
 }

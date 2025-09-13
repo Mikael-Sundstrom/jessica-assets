@@ -1,39 +1,9 @@
-<!-- <mat-card class="controls-card">
-	<div class="row">
-		<mat-button-toggle-group [value]="cfg.costView()" (change)="cfg.setCostView($event.value)">
-			<mat-button-toggle value="total">Total</mat-button-toggle>
-			<mat-button-toggle value="grouped">Grupperad</mat-button-toggle>
-			<mat-button-toggle value="detailed">Detaljerad</mat-button-toggle>
-		</mat-button-toggle-group>
-
-		<span style="flex: 1"></span>
-
-		<mat-slide-toggle [checked]="cfg.includeTemporary()" (change)="onIncludeTemporaryChange($event.checked)">
-			Inkludera tillfälligt
-		</mat-slide-toggle>
-
-		<mat-slide-toggle
-			[checked]="cfg.costIncludeAmortizationAsExpense()"
-			(change)="onIncludeAmortizationChange($event.checked)"
-		>
-			Räkna amortering som utgift
-		</mat-slide-toggle>
-
-		<mat-slide-toggle
-			[checked]="cfg.costIncludeSavingsAsExpense()"
-			(change)="onIncludeSavingsChange($event.checked)"
-		>
-			Räkna sparande som utgift
-		</mat-slide-toggle>
-	</div>
-</mat-card> -->
-
 <div class="grid" [style.--cols]="cols()">
 	<mat-card class="chart-card">
 		<!-- knapp i kortets hörn -->
 		<button
 			mat-icon-button
-			class="card-action"
+			class="btn-card-settings"
 			matTooltip="Inställningar för kostnadsdiagram"
 			aria-label="Öppna inställningar"
 			(click)="openCostSettings()"
@@ -48,8 +18,8 @@
 	<mat-card [style.gridColumn]="totalColspan() === 2 ? 'span 2' : 'span 1'">
 		<button
 			mat-icon-button
-			class="card-action"
-			matTooltip="Inställningar för kostnadsdiagram"
+			class="btn-card-settings"
+			matTooltip="Inställningar för resultatdiagram"
 			aria-label="Öppna inställningar"
 			(click)="openTotalSettings()"
 		>
