@@ -1,0 +1,74 @@
+<table mat-table [dataSource]="species()" multiTemplateDataRows class="mat-elevation-z8">
+	@for (column of columns(); track column) {
+	<ng-container matColumnDef="{{ column }}">
+		<th mat-header-cell *matHeaderCellDef>
+			@switch (column) { @case ('plantType') { Typ } @case ('variety') { Sort } @case ('growthHeightCm') { Höjd }
+			@case ('spacing') { Avstånd } @case ('sunlight') { Ljus } }
+		</th>
+
+		<td mat-cell *matCellDef="let row">
+			@switch (column) { @case ('plantType') { {{ row.plantType }} } @case ('variety') { {{ row.variety }} } @case
+			('growthHeightCm') { {{ heightText(row.growthHeightCm) }} } @case ('spacing') {
+			{{ spacingText(row.spacing) }} } @case ('sunlight') { {{ sunlightLabel(row.sunlight) }} } }
+		</td>
+	</ng-container>
+	}
+
+	<!-- EN (1) expandedDetail-kolumn -->
+	<ng-container matColumnDef="expandedDetail">
+		<td mat-cell *matCellDef="let row" [attr.colspan]="columns().length">
+			<div class="element-detail-wrapper" [class.element-detail-wrapper-expanded]="isExpanded(row)">
+				<div class="element-detail">
+					<div class="detail-grid">
+						<div><strong>Typ:</strong> {{ row.plantType || '—' }}</div>
+						<div><strong>Sort:</strong> {{ row.variety || '—' }}</div>
+						<div><strong>Livslängd:</strong> {{ row.lifespan || '—' }}</div>
+						<div><strong>Såfönster:</strong> {{ sowingWindowText(row) }}</div>
+						<div><strong>Sådjup:</strong> {{ row.sowingDepthMm ?? '—' }} mm</div>
+						<div><strong>Grobarhet:</strong> {{ row.germinationRatePct ?? '—' }} %</div>
+						<div><strong>Grotid:</strong> {{ germinationDaysText(row) }}</div>
+						<div><strong>Grotemperatur:</strong> {{ germinationTempText(row) }}</div>
+						<div><strong>Avstånd:</strong> {{ spacingText(row.spacing) }}</div>
+						<div><strong>Ljus:</strong> {{ sunlightLabel(row.sunlight) }}</div>
+						<div><strong>Vatten:</strong> {{ waterLabel(row.water) }}</div>
+						<div><strong>Näring:</strong> {{ fertLabel(row.fertilizer) }}</div>
+						<div><strong>Höjd:</strong> {{ heightText(row.growthHeightCm) }}</div>
+						<div><strong>Ätbar:</strong> {{ row.isEdible ? 'Ja' : 'Nej' }}</div>
+						<div><strong>Jordtyp:</strong> {{ row.soilType || '—' }}</div>
+						<div>
+							<strong>Skördefönster:</strong>
+							{{
+								row.harvestWindow?.earliest && row.harvestWindow?.latest
+									? (monthName(row.harvestWindow.earliest) || row.harvestWindow.earliest) +
+									  ' – ' +
+									  (monthName(row.harvestWindow.latest) || row.harvestWindow.latest)
+									: '—'
+							}}
+						</div>
+					</div>
+
+					@if (row.description) {
+					<div class="element-description">{{ row.description }}</div>
+					}
+				</div>
+			</div>
+		</td>
+	</ng-container>
+
+	<!-- Header/rader utan expand-kolumn -->
+	<tr mat-header-row *matHeaderRowDef="columns()"></tr>
+
+	<tr
+		mat-row
+		*matRowDef="let row; columns: columns()"
+		class="row"
+		[class.row-expanded]="isExpanded(row)"
+		(click)="toggle(row)"
+		(keydown.enter)="toggle(row)"
+		(keydown.space)="toggle(row)"
+		role="button"
+		tabindex="0"
+	></tr>
+
+	<tr mat-row *matRowDef="let _; columns: ['expandedDetail']" class="detail-row"></tr>
+</table>

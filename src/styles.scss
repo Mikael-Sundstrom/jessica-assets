@@ -1,20 +1,46 @@
 @use '@angular/material' as mat;
+// Byt alias från "gray" (krockar med CSS-färgnamn) till t.ex. "g"
+@use './_gray-colors' as g;
 
-@font-face {
-	font-family: 'Roboto Condensed';
-	src: url('/fonts/RobotoCondensed-Regular.woff2') format('woff2');
-	font-weight: 400;
-	font-style: normal;
+@mixin colorful-overrides() {
+	@include mat.toolbar-overrides(
+		(
+			container-background-color: var(--mat-sys-primary),
+			container-text-color: var(--mat-sys-on-primary),
+		)
+	);
 
-	font-display: swap;
+	.budget-table {
+		.striped-row:nth-child(even) {
+			background-color: var(--mat-sys-surface);
+		}
+		.striped-row:nth-child(odd) {
+			background-color: white;
+		}
+	}
+
+	.app-toolbar {
+		--mat-icon-color: var(--mat-sys-on-primary);
+	}
+
+	.btn-primary {
+		@include mat.button-overrides(
+			(
+				protected-container-color: color-mix(in srgb, var(--mat-sys-primary) 100%, white),
+				protected-label-text-color: var(--mat-sys-on-secondary),
+			)
+		);
+	}
 }
 
+/* ================== BAS: Ljus (grå) ================== */
 html {
+	color-scheme: light;
 	@include mat.theme(
 		(
 			color: (
-				primary: mat.$rose-palette,
-				tertiary: mat.$violet-palette,
+				primary: g.$primary-palette,
+				tertiary: g.$tertiary-palette,
 			),
 			typography: Roboto,
 			density: 0,
@@ -22,25 +48,67 @@ html {
 	);
 }
 
-// prettier-ignore
-html.theme-rose { @include mat.theme((color: (primary: mat.$rose-palette, tertiary: mat.$violet-palette))); }
-// prettier-ignore
-html.theme-red { @include mat.theme((color: (primary: mat.$red-palette, tertiary: mat.$orange-palette))); }
-// prettier-ignore
-html.theme-blue { @include mat.theme((color: (primary: mat.$blue-palette, tertiary: mat.$cyan-palette))); }
-// prettier-ignore
-html.theme-green { @include mat.theme((color: (primary: mat.$green-palette, tertiary: mat.$spring-green-palette))); }
-// prettier-ignore
-html.theme-yellow { @include mat.theme((color: (primary: mat.$yellow-palette, tertiary: mat.$chartreuse-palette))); }
-// prettier-ignore
-html.theme-magenta { @include mat.theme((color: (primary: mat.$magenta-palette, tertiary: mat.$azure-palette))); }
+/* ================== MÖRK (grå) ================== */
+html.theme-dark {
+	color-scheme: dark;
+	@include mat.theme(
+		(
+			color: (
+				primary: g.$primary-palette,
+				tertiary: g.$tertiary-palette,
+			),
+		)
+	);
+
+	@include mat.card-overrides(
+		(
+			elevated-container-color: rgb(51, 51, 51),
+		)
+	);
+
+	@include mat.dialog-overrides(
+		(
+			container-elevation-shadow: 0px 20px 150px 150px rgba(0, 0, 0, 1),
+		)
+	);
+
+	.btn-primary {
+		border: 1px solid color-mix(in srgb, var(--mat-sys-on-primary) 75%, white);
+	}
+}
+
+/* ================== ROSE ================== */
+html.theme-rose {
+	@include mat.theme(
+		(
+			color: (
+				primary: mat.$rose-palette,
+				tertiary: mat.$violet-palette,
+				theme-type: light,
+			),
+		)
+	);
+	@include colorful-overrides();
+}
+
+/* ================== BLÅ ================== */
+html.theme-blue {
+	@include mat.theme(
+		(
+			color: (
+				primary: mat.$azure-palette,
+				tertiary: mat.$yellow-palette,
+				theme-type: light,
+			),
+		)
+	);
+	@include colorful-overrides();
+}
 
 body {
-	color-scheme: light;
-	background-color: var(--mat-sys-surface);
+	background: var(--mat-sys-surface);
 	color: var(--mat-sys-on-surface);
 	font: var(--mat-sys-body-medium);
-
 	margin: 0;
 	font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
@@ -54,23 +122,11 @@ body {
 	flex: 1 1 auto;
 }
 
-/**
- * Angular Material theme overrides
- * https://material.angular.dev/guide/theming#overriding-component-styles
- *
- * Use these sparingly. Prefer using CSS variables in your components.
- * These overrides are global and affect all components of that type.
- */
+/* ================== GLOBAL OVERRIDES ================== */
 @include mat.tabs-overrides(
 	(
 		active-indicator-height: 2px,
 		container-height: 60px,
-	)
-);
-
-@include mat.card-overrides(
-	(
-		elevated-container-shape: 4px,
 	)
 );
 
@@ -85,15 +141,31 @@ body {
 		content-padding: 0,
 	)
 );
+
+@include mat.toolbar-overrides(
+	(
+		title-text-size: 20px,
+		standard-height: 60px,
+		mobile-height: 60px,
+	)
+);
+
+@include mat.table-overrides(
+	(
+		row-item-label-text-size: 14px,
+		row-item-outline-color: var(--mat-sys-outline-variant),
+		row-item-label-text-font: Roboto Condensed,
+	)
+);
 .mat-mdc-dialog-title {
 	text-align: center;
 }
 
-.btn-primary {
-	@include mat.button-overrides(
+.btn-delete,
+.btn-card-settings {
+	@include mat.icon-button-overrides(
 		(
-			protected-container-color: color-mix(in srgb, var(--mat-sys-primary) 100%, white),
-			protected-label-text-color: var(--mat-sys-on-secondary),
+			icon-color: var(--mat-sys-secondary),
 		)
 	);
 }
@@ -106,38 +178,6 @@ body {
 	);
 }
 
-.btn-delete,
-.btn-card-settings {
-	@include mat.icon-button-overrides(
-		(
-			icon-color: var(--mat-sys-secondary),
-		)
-	);
-}
-
-.budget-table {
-	@include mat.table-overrides(
-		(
-			row-item-label-text-size: 14px,
-			row-item-outline-color: var(--mat-sys-outline-variant),
-			row-item-label-text-font: Roboto Condensed,
-		)
-	);
-	.striped-row:nth-child(even) {
-		background-color: var(--mat-sys-surface);
-	}
-	.striped-row:nth-child(odd) {
-		background-color: white;
-	}
-}
 .mat-mdc-dialog-content .stack-toggle .mat-mdc-slide-toggle .mdc-label {
 	padding-inline-start: 12px;
 }
-
-@include mat.toolbar-overrides(
-	(
-		title-text-size: 20px,
-		standard-height: 60px,
-		mobile-height: 60px,
-	)
-);

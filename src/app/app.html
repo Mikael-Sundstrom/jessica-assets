@@ -20,26 +20,35 @@
 
 	<!-- Menyn -->
 	<mat-menu #userMenu="matMenu" xPosition="before" yPosition="below">
-		<div class="theme-picker">
-			@for (t of themes; track t.class) {
-			<button
-				class="theme-dot"
-				[style.background]="t.color"
-				(click)="setTheme(t.class)"
-				[class.active]="t.class === currentTheme()"
-				[title]="t.label"
-				[attr.aria-label]="'Välj tema ' + t.label"
-			></button>
-
-			}
-		</div>
 		<button mat-menu-item disabled>
 			<mat-icon>person</mat-icon>
 			<span>{{ user()?.displayName || user()?.email }}</span>
 		</button>
-		<mat-divider></mat-divider>
-		<button mat-menu-item routerLink="/"><mat-icon>home</mat-icon><span>Hem</span></button>
 
+		<mat-divider></mat-divider>
+
+		<button mat-menu-item [matMenuTriggerFor]="themeMenu">
+			<mat-icon>palette</mat-icon>
+			<span>Tema</span>
+		</button>
+		<mat-menu #themeMenu="matMenu">
+			@for (t of themes; track t.class) {
+			<button
+				mat-menu-item
+				(click)="setTheme(t.class)"
+				role="menuitemradio"
+				[attr.aria-checked]="t.class === currentTheme()"
+				[class.selected]="t.class === currentTheme()"
+			>
+				<span [style.color]="t.color">{{ t.label }}</span>
+				@if (t.class === currentTheme()) {
+				<mat-icon [style.color]="t.color">radio_button_checked</mat-icon> } @else {
+				<mat-icon [style.color]="t.color">radio_button_unchecked</mat-icon> }
+			</button>
+			}
+		</mat-menu>
+
+		<button mat-menu-item routerLink="/"><mat-icon>home</mat-icon><span>Hem</span></button>
 		<button mat-menu-item (click)="logout()"><mat-icon>logout</mat-icon><span>Logga ut</span></button>
 	</mat-menu>
 

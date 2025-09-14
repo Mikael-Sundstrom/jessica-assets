@@ -29,6 +29,11 @@ export class App {
 	private auth = inject(AuthService)
 	private router = inject(Router)
 
+	constructor() {
+		const saved = this.currentTheme()
+		if (saved) document.documentElement.classList.add(saved)
+	}
+
 	user = computed(() => this.auth.currentUser())
 
 	// Title och bakåtknapp
@@ -60,7 +65,7 @@ export class App {
 	)
 	title = computed(() => {
 		const data = typeof this.routeData() === 'function' ? (this.routeData() as any)() : this.routeData()
-		return data.title ?? 'App'
+		return data.title ?? 'Jessicas loggbok'
 	})
 	initials = computed(() => {
 		const n = this.user()?.displayName?.trim() || this.user()?.email || ''
@@ -75,25 +80,21 @@ export class App {
 	// tema
 	currentTheme = signal(localStorage.getItem('theme') ?? '')
 
+	// Ersätt themes[] med fyra teman (ljus/mörk/rose/blå)
 	themes = [
-		{ class: 'theme-rose', label: 'Rosa', color: '#f42a6eff' },
-		{ class: 'theme-red', label: 'Röd', color: '#e91e1eff' },
-		{ class: 'theme-blue', label: 'Blå', color: '#2196f3' },
-		{ class: 'theme-green', label: 'Grön', color: '#4caf50' },
-		{ class: 'theme-yellow', label: 'Gul', color: '#ff9800' },
-		{ class: 'theme-magenta', label: 'Magenta', color: '#d81b60' },
+		{ class: 'theme-light', label: 'Ljust', color: '#aaaaaa' },
+		{ class: 'theme-dark', label: 'Mörkt', color: '#555555' },
+		{ class: 'theme-rose', label: 'Rose', color: '#f42a6e' },
+		{ class: 'theme-blue', label: 'Blå', color: '#00458f' },
 	]
 
 	setTheme(themeClass: string) {
 		const root = document.documentElement
-		this.themes.forEach(t => root.classList.remove(t.class))
+		// rensa bara de vi använder
+		;['theme-light', 'theme-dark', 'theme-rose', 'theme-blue'].forEach(c => root.classList.remove(c))
 		if (themeClass) root.classList.add(themeClass)
 		localStorage.setItem('theme', themeClass)
 		this.currentTheme.set(themeClass)
-	}
-
-	toggleTheme() {
-		document.documentElement.classList.toggle('theme-blue')
 	}
 
 	login() {

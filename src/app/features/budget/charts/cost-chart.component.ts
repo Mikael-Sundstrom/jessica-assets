@@ -1,5 +1,5 @@
 // app/features/charts/cost-chart.component.ts
-import { Component, computed, ElementRef, inject, ViewChild, AfterViewInit, OnDestroy } from '@angular/core'
+import { Component, computed, ElementRef, inject, ViewChild, AfterViewInit, OnDestroy, signal } from '@angular/core'
 import { BaseChartDirective } from 'ng2-charts'
 import { ChartConfiguration, ChartData } from 'chart.js'
 import { MatDialog } from '@angular/material/dialog'
@@ -47,11 +47,40 @@ export class CostChart implements AfterViewInit, OnDestroy {
 	@ViewChild(BaseChartDirective) chart?: BaseChartDirective
 	private io?: IntersectionObserver
 
-	// === Färger (samma som innan) ===
-	private colorMikael = computed(() => this.resolveColor('--mat-sys-tertiary'))
-	private colorJessica = computed(() => this.resolveColor('--mat-sys-primary'))
-	private colorTotal = computed(() => this.resolveColor('--mat-sys-secondary'))
+	// === Lägg till överst i klassen ===
+	private themeClass = signal<'light' | 'dark' | 'rose' | 'blue'>(this.readThemeClass())
+	private mo?: MutationObserver
+	private neutralChart = {
+		mikael: '#005cbbcc',
+		jessica: '#ba005ccc',
+		total: '#666666cc',
+	}
+	private readThemeClass(): 'light' | 'dark' | 'rose' | 'blue' {
+		const c = this.doc.documentElement.classList
+		if (c.contains('theme-rose')) return 'rose'
+		if (c.contains('theme-blue')) return 'blue'
+		if (c.contains('theme-dark')) return 'dark'
+		return 'light'
+	}
 
+	// === Färger (samma som innan) ===
+	private colorMikael = computed(() => {
+		const t = this.themeClass()
+		if (t === 'light' || t === 'dark') return this.neutralChart.mikael
+		return this.resolveColor('--mat-sys-tertiary')
+	})
+	private colorJessica = computed(() => {
+		const t = this.themeClass()
+		if (t === 'light' || t === 'dark') return this.neutralChart.jessica
+		return this.resolveColor('--mat-sys-primary')
+	})
+	private colorTotal = computed(() => {
+		const t = this.themeClass()
+		if (t === 'light' || t === 'dark') return this.neutralChart.total
+		return this.resolveColor('--mat-sys-secondary')
+	})
+
+	// Lyssna på ändringar i <html class="..."> och uppdatera themeClass
 	private resolveColor = (cssVarName: string): string => {
 		const probe = this.doc.createElement('div')
 		probe.style.display = 'none'
@@ -72,24 +101,41 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		return resolved
 	}
 
+	// 2) Gör label/grid-färger reaktiva mot temat
+	private labelColor = computed(() => {
+		this.themeClass() // <- skapa beroende
+		return this.resolveColor('--mat-sys-on-surface')
+	})
+	private gridColor = computed(() => {
+		this.themeClass() // <- skapa beroende
+		return this.withAlpha(this.resolveColor('--mat-sys-outline-variant'), 0.18)
+	})
+
+	// Helper to add alpha to a CSS color string
+	private withAlpha = (rgbOrHex: string, a: number) =>
+		rgbOrHex.startsWith('rgb(') ? rgbOrHex.replace('rgb(', 'rgba(').replace(')', `, ${a})`) : rgbOrHex
+
 	chartHeight = computed(() => (this.cfg.costView() === 'detailed' ? 600 : 300))
 
 	readonly options = computed<ChartConfiguration<'bar'>['options']>(() => {
 		const view = this.cfg.costView() as View
 		const isGrouped = view === 'grouped'
+		const labelColor = this.resolveColor('--mat-sys-on-surface')
 
 		return {
 			responsive: true,
 			maintainAspectRatio: false,
 			indexAxis: 'y',
-			// Endast klick i detailed, annars vanlig händelsehantering
 			events: view === 'detailed' ? ['click'] : undefined,
-
 			plugins: {
-				legend: { display: view !== 'total', position: 'top' },
-				title: { display: true, text: 'Kostnader' },
+				legend: {
+					display: view !== 'total',
+					position: 'top',
+					labels: { color: labelColor }, // ← legend text
+				},
+				title: { display: true, text: 'Kostnader', color: labelColor }, // ← titel
 				tooltip: {
-					enabled: view !== 'grouped', // total + detailed: ja, grouped: nej
+					enabled: view !== 'grouped',
 					callbacks:
 						view === 'total'
 							? { label: ctx => `${ctx.label}: ${this.formatCurrency(Number(ctx.parsed.x))}` }
@@ -97,8 +143,21 @@ export class CostChart implements AfterViewInit, OnDestroy {
 				},
 			},
 			scales: {
-				x: { stacked: isGrouped, beginAtZero: true, ticks: { callback: v => this.formatCurrency(Number(v)) } },
-				y: { stacked: isGrouped },
+				x: {
+					stacked: isGrouped,
+					beginAtZero: true,
+					ticks: {
+						display: true,
+						color: this.labelColor(),
+						callback: v => this.formatCurrency(Number(v)),
+					},
+					grid: { color: this.gridColor() },
+				},
+				y: {
+					stacked: isGrouped,
+					ticks: { color: this.labelColor() },
+					grid: { color: this.gridColor() },
+				},
 			},
 		}
 	})
@@ -409,7 +468,12 @@ export class CostChart implements AfterViewInit, OnDestroy {
 		}
 	}
 
-	// ——— Stabil höjd vid tabb-byte ———
+	constructor() {
+		this.mo = new MutationObserver(() => this.themeClass.set(this.readThemeClass()))
+		this.mo.observe(this.doc.documentElement, { attributes: true, attributeFilter: ['class'] })
+	}
+
+	// === Koppla omritning när temat byts (klass på <html> ändras) ===
 	ngAfterViewInit() {
 		this.io = new IntersectionObserver(
 			([entry]) => {
@@ -423,8 +487,18 @@ export class CostChart implements AfterViewInit, OnDestroy {
 			{ threshold: 0.01 }
 		)
 		this.io.observe(this.host.nativeElement)
+
+		// Observera klassändringar på <html> för att trigga color-computed
+		this.mo = new MutationObserver(() => {
+			this.themeClass.set(this.readThemeClass())
+			// uppdatera diagrammet direkt
+			this.chart?.update()
+		})
+		this.mo.observe(this.doc.documentElement, { attributes: true, attributeFilter: ['class'] })
 	}
+
 	ngOnDestroy() {
 		this.io?.disconnect()
+		this.mo?.disconnect()
 	}
 }
