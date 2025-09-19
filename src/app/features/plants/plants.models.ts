@@ -26,6 +26,13 @@ export interface Spacing {
 	betweenRowsCm?: number
 }
 
+export type CareEase = 1 | 2 | 3 // 1 = kräver omsorg, 3 = superlätt
+export const CARE_EASE_LABEL: Record<CareEase, string> = {
+	1: 'Kräver omsorg',
+	2: 'Medel',
+	3: 'Superlätt',
+}
+
 export interface PlantSpecies {
 	id: string
 	plantType: string // t.ex. "Tomat"
@@ -51,6 +58,7 @@ export interface PlantSpecies {
 	description?: string
 	createdAt?: number
 	updatedAt?: number
+	careEase?: CareEase
 }
 
 export type PlantingStatus = 'planned' | 'sown' | 'transplanted' | 'growing' | 'harvest' | 'done' | 'failed'
@@ -82,11 +90,7 @@ export interface Planting {
 	createdAt?: number
 	updatedAt?: number
 }
-export const SUNLIGHT_LABEL: Record<Sunlight, string> = {
-	full_sun: 'Full sol',
-	partial_shade: 'Halvskugga',
-	shade: 'Skugga',
-}
+
 export const WATER_LABEL: Record<WaterNeed, string> = {
 	low: 'Låg',
 	moderate: 'Måttlig',
@@ -96,4 +100,9 @@ export const FERTILIZER_LABEL: Record<FertilizerNeed, string> = {
 	low: 'Låg',
 	moderate: 'Måttlig',
 	high: 'Hög',
+}
+export const SUNLIGHT_META: Record<Sunlight, { label: string; icon: string }> = {
+	full_sun: { label: 'Full sol', icon: 'sunny' }, // ☀️
+	partial_shade: { label: 'Halvskugga', icon: 'partly_cloudy_day' }, // ⛅
+	shade: { label: 'Skugga', icon: 'filter_drama' }, // 🌙
 }

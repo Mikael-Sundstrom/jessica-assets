@@ -2,14 +2,29 @@
 	@for (column of columns(); track column) {
 	<ng-container matColumnDef="{{ column }}">
 		<th mat-header-cell *matHeaderCellDef>
-			@switch (column) { @case ('plantType') { Typ } @case ('variety') { Sort } @case ('growthHeightCm') { Höjd }
-			@case ('spacing') { Avstånd } @case ('sunlight') { Ljus } }
+			@switch (column) { @case ('plantType'){ Typ } @case ('variety'){ Sort } @case ('sowWindow'){ Såfönster }
+			@case ('careEase'){ Svårighet } }
 		</th>
-
 		<td mat-cell *matCellDef="let row">
-			@switch (column) { @case ('plantType') { {{ row.plantType }} } @case ('variety') { {{ row.variety }} } @case
-			('growthHeightCm') { {{ heightText(row.growthHeightCm) }} } @case ('spacing') {
-			{{ spacingText(row.spacing) }} } @case ('sunlight') { {{ sunlightLabel(row.sunlight) }} } }
+			@switch (column) { @case ('plantType'){
+			{{ row.plantType }}
+			} @case ('variety'){ {{ row.variety }} } @case ('sowWindow'){ {{ sowingWindowText(row) }} } @case
+			('careEase'){ @if (row.careEase) {
+			<span
+				class="care-scale"
+				[matTooltip]="careLabel(row.careEase)"
+				aria-label="Lättskött: {{ careLabel(row.careEase) }}"
+			>
+				<!-- fyllda ikoner (antal = careEase) -->
+				@for (i of range(row.careEase); track i) {
+				<mat-icon class="care-icon on">spa</mat-icon>
+				}
+				<!-- tomma ikoner (resten upp till 3) -->
+				@for (i of range(maxCare - row.careEase); track i) {
+				<mat-icon class="care-icon off">spa</mat-icon>
+				}
+			</span>
+			} @else { — } } }
 		</td>
 	</ng-container>
 	}
@@ -29,7 +44,7 @@
 						<div><strong>Grotid:</strong> {{ germinationDaysText(row) }}</div>
 						<div><strong>Grotemperatur:</strong> {{ germinationTempText(row) }}</div>
 						<div><strong>Avstånd:</strong> {{ spacingText(row.spacing) }}</div>
-						<div><strong>Ljus:</strong> {{ sunlightLabel(row.sunlight) }}</div>
+						<div><strong>Ljus:</strong> {{ sunlightMetaSafe(row.sunlight)?.label }}</div>
 						<div><strong>Vatten:</strong> {{ waterLabel(row.water) }}</div>
 						<div><strong>Näring:</strong> {{ fertLabel(row.fertilizer) }}</div>
 						<div><strong>Höjd:</strong> {{ heightText(row.growthHeightCm) }}</div>
@@ -40,7 +55,7 @@
 							{{
 								row.harvestWindow?.earliest && row.harvestWindow?.latest
 									? (monthName(row.harvestWindow.earliest) || row.harvestWindow.earliest) +
-									  ' – ' +
+									  ' - ' +
 									  (monthName(row.harvestWindow.latest) || row.harvestWindow.latest)
 									: '—'
 							}}

@@ -19,11 +19,11 @@ const EXPENSE_GROUP_ORDER: TopGroup[] = ['housing', 'food', 'transport', 'financ
 
 const GROUP_ICON: Record<TopGroup, string> = {
 	housing: 'home',
-	food: 'restaurant',
+	food: 'dining',
 	transport: 'directions_car',
 	finance: 'account_balance',
 	savings: 'savings',
-	family: 'family_restroom',
+	family: 'family_group',
 	other: 'category',
 	income: 'savings', // används ej här
 }

@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon'
 import { MatInputModule } from '@angular/material/input'
 import { MatSelectModule } from '@angular/material/select'
 import { PlantsService } from './plants.service'
-import { FERTILIZER_LABEL, Planting, PlantSpecies, SUNLIGHT_LABEL, WATER_LABEL } from './plants.models'
+import { FERTILIZER_LABEL, Planting, PlantSpecies, WATER_LABEL } from './plants.models'
 import { PlantsList } from './list/list'
 
 @Component({

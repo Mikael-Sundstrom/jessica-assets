@@ -125,15 +125,15 @@ export class TotalChart implements OnDestroy {
 			if (e.type !== 'cost') return false
 			if (!includeTemporary && e.temporary) return false
 			if (!includeAmort && e.category === 'finance.loan_amortization') return false
-			if (!savingsAsExpense && isSavings(e)) return false
+			if (!savingsAsExpense && isSavings(e)) return false // ignorera sparande
 			return true
 		}
+
 		const isIncome = (e: (typeof all)[number]) => {
 			if (!includeTemporary && e.temporary) return false
-			if (e.type === 'income') return true
-			if (!savingsAsExpense && isSavings(e)) return true
-			return false
+			return e.type === 'income' // <-- ta bort specialfallet
 		}
+
 		const sum = (pred: (x: (typeof all)[number]) => boolean, person?: 'mikael' | 'jessica') =>
 			all
 				.filter(pred)

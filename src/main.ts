@@ -5,14 +5,7 @@ import { Chart, registerables } from 'chart.js'
 Chart.register(...registerables)
 const saved = localStorage.getItem('theme')
 if (saved) {
-	document.documentElement.classList.remove(
-		'theme-red',
-		'theme-green',
-		'theme-blue',
-		'theme-yellow',
-		'theme-magenta',
-		'theme-rose'
-	)
+	document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-blue', 'theme-rose')
 	document.documentElement.classList.add(saved)
 }
 
