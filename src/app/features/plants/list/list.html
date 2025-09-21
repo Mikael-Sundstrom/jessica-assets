@@ -3,68 +3,88 @@
 	<ng-container matColumnDef="{{ column }}">
 		<th mat-header-cell *matHeaderCellDef>
 			@switch (column) { @case ('plantType'){ Typ } @case ('variety'){ Sort } @case ('sowWindow'){ Såfönster }
-			@case ('careEase'){ Svårighet } }
+			@case ('name'){ Namn } }
 		</th>
+
 		<td mat-cell *matCellDef="let row">
-			@switch (column) { @case ('plantType'){
-			{{ row.plantType }}
-			} @case ('variety'){ {{ row.variety }} } @case ('sowWindow'){ {{ sowingWindowText(row) }} } @case
-			('careEase'){ @if (row.careEase) {
-			<span
-				class="care-scale"
-				[matTooltip]="careLabel(row.careEase)"
-				aria-label="Lättskött: {{ careLabel(row.careEase) }}"
-			>
-				<!-- fyllda ikoner (antal = careEase) -->
-				@for (i of range(row.careEase); track i) {
-				<mat-icon class="care-icon on">spa</mat-icon>
-				}
-				<!-- tomma ikoner (resten upp till 3) -->
-				@for (i of range(maxCare - row.careEase); track i) {
-				<mat-icon class="care-icon off">spa</mat-icon>
-				}
-			</span>
-			} @else { — } } }
+			@switch (column) { @case ('plantType'){ {{ row.plantType }} } @case ('variety'){ {{ row.variety }} } @case
+			('sowWindow'){ {{ sowingWindowText(row) }} } @case ('name'){ {{ nameOf(row) }} } }
 		</td>
 	</ng-container>
 	}
 
 	<!-- EN (1) expandedDetail-kolumn -->
+
 	<ng-container matColumnDef="expandedDetail">
 		<td mat-cell *matCellDef="let row" [attr.colspan]="columns().length">
 			<div class="element-detail-wrapper" [class.element-detail-wrapper-expanded]="isExpanded(row)">
 				<div class="element-detail">
-					<div class="detail-grid">
-						<div><strong>Typ:</strong> {{ row.plantType || '—' }}</div>
-						<div><strong>Sort:</strong> {{ row.variety || '—' }}</div>
-						<div><strong>Livslängd:</strong> {{ row.lifespan || '—' }}</div>
-						<div><strong>Såfönster:</strong> {{ sowingWindowText(row) }}</div>
-						<div><strong>Sådjup:</strong> {{ row.sowingDepthMm ?? '—' }} mm</div>
-						<div><strong>Grobarhet:</strong> {{ row.germinationRatePct ?? '—' }} %</div>
-						<div><strong>Grotid:</strong> {{ germinationDaysText(row) }}</div>
-						<div><strong>Grotemperatur:</strong> {{ germinationTempText(row) }}</div>
-						<div><strong>Avstånd:</strong> {{ spacingText(row.spacing) }}</div>
-						<div><strong>Ljus:</strong> {{ sunlightMetaSafe(row.sunlight)?.label }}</div>
-						<div><strong>Vatten:</strong> {{ waterLabel(row.water) }}</div>
-						<div><strong>Näring:</strong> {{ fertLabel(row.fertilizer) }}</div>
-						<div><strong>Höjd:</strong> {{ heightText(row.growthHeightCm) }}</div>
-						<div><strong>Ätbar:</strong> {{ row.isEdible ? 'Ja' : 'Nej' }}</div>
-						<div><strong>Jordtyp:</strong> {{ row.soilType || '—' }}</div>
-						<div>
-							<strong>Skördefönster:</strong>
-							{{
-								row.harvestWindow?.earliest && row.harvestWindow?.latest
-									? (monthName(row.harvestWindow.earliest) || row.harvestWindow.earliest) +
-									  ' - ' +
-									  (monthName(row.harvestWindow.latest) || row.harvestWindow.latest)
-									: '—'
-							}}
+					<div class="card">
+						<div class="card-header">
+							<div class="thumb">
+								@if (row.imageUrl) {
+								<img
+									[src]="row.imageUrl"
+									alt="{{ row.plantType }} {{ row.variety }}"
+									(click)="openImage(row.imageUrl!, row.plantType + ' ' + (row.variety || ''))"
+								/>
+								} @else {
+								<div class="thumb-placeholder" aria-label="Ingen bild">
+									<mat-icon>yard</mat-icon>
+								</div>
+								}
+							</div>
+
+							<div class="about">
+								<div class="title-line">
+									<div class="kicker">
+										<strong>{{ row.plantType || '—' }}</strong>
+										<span class="muted"> · </span>
+										<span>{{ nameOf(row) || '—' }}</span>
+									</div>
+
+									<!-- Lättskött-skala -->
+									<!-- Betyg -->
+									@if (row.grade) {
+									<span
+										class="grade-badge"
+										[class]="gradeClass(row.grade)"
+										[matTooltip]="'Betyg: ' + gradeLabel(row.grade) + ' av ' + maxGrade"
+										aria-label="Betyg: {{ gradeLabel(row.grade) }} av {{ maxGrade }}"
+									>
+										<!-- Material Symbols (siffror) -->
+										<mat-icon class="grade-icon">{{ gradeIcon(row.grade) }}</mat-icon>
+									</span>
+									}
+								</div>
+
+								@if (row.description) {
+								<p class="desc">{{ row.description }}</p>
+								}
+							</div>
+						</div>
+
+						<!-- Nedre rutnät: hårddata (2 kolumner) -->
+						<div class="facts">
+							@for (f of factRows(row); track f.label) {
+							<div
+								class="fact"
+								[matTooltip]="f.hint || ''"
+								[matTooltipDisabled]="!f.hint"
+								matTooltipPosition="above"
+								matTooltipShowDelay="250"
+							>
+								<div class="label">
+									<mat-icon>{{ f.icon }}</mat-icon>
+								</div>
+
+								<div class="value">
+									{{ f.value }}
+								</div>
+							</div>
+							}
 						</div>
 					</div>
-
-					@if (row.description) {
-					<div class="element-description">{{ row.description }}</div>
-					}
 				</div>
 			</div>
 		</td>
@@ -76,7 +96,7 @@
 	<tr
 		mat-row
 		*matRowDef="let row; columns: columns()"
-		class="row"
+		class="expandable-row"
 		[class.row-expanded]="isExpanded(row)"
 		(click)="toggle(row)"
 		(keydown.enter)="toggle(row)"

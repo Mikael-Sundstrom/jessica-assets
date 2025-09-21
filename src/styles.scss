@@ -46,6 +46,9 @@ html {
 			density: 0,
 		)
 	);
+	table .element-detail-wrapper .element-detail {
+		background: #fff;
+	}
 }
 
 /* ================== MÖRK (grå) ================== */
@@ -74,6 +77,10 @@ html.theme-dark {
 
 	.btn-primary {
 		border: 1px solid color-mix(in srgb, var(--mat-sys-on-primary) 75%, white);
+	}
+
+	table .element-detail-wrapper .element-detail {
+		background: inherit;
 	}
 }
 
@@ -180,4 +187,8 @@ body {
 
 .mat-mdc-dialog-content .stack-toggle .mat-mdc-slide-toggle .mdc-label {
 	padding-inline-start: 12px;
+}
+
+.image-backdrop {
+	background: rgba(0, 0, 0, 0.9);
 }
