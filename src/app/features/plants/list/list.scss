@@ -45,6 +45,7 @@ table {
 		gap: 16px;
 		align-items: start;
 		.thumb {
+			margin-top: 0.7rem;
 			width: 7rem;
 			border-radius: 0.5rem;
 			overflow: hidden;
@@ -73,7 +74,6 @@ table {
 			.title-line {
 				display: flex;
 				align-items: center;
-				justify-content: space-between;
 				gap: 12px;
 				.kicker {
 					font-weight: 600;
@@ -116,13 +116,12 @@ table {
 		}
 	}
 }
-.grade-badge {
+/* .grade-badge {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	width: 28px;
 	height: 28px;
-	border-radius: 50%;
 
 	&.grade--low {
 		color: var(--mat-sys-error);
@@ -139,3 +138,4 @@ table {
 		line-height: 1;
 	}
 }
+ */

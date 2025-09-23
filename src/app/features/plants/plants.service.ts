@@ -1,27 +1,42 @@
 // plants.service.ts
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext, computed, Signal } from '@angular/core'
-import { Firestore, collection, query, orderBy, doc, addDoc, setDoc, deleteDoc } from '@angular/fire/firestore'
+import {
+	Firestore,
+	collection,
+	query,
+	orderBy,
+	doc,
+	addDoc,
+	setDoc,
+	deleteDoc,
+	updateDoc,
+} from '@angular/fire/firestore'
 import { collectionData } from '@angular/fire/firestore'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { PlantSpecies } from './plants.model'
 import { map } from 'rxjs/operators'
 
-type SpeciesDoc = Omit<PlantSpecies, 'id'> & { id?: string } // ← Firestore-dokumentet saknar id, men behövs för idField
+type SpeciesDoc = Omit<PlantSpecies, 'id'> & { id?: string }
 
 @Injectable({ providedIn: 'root' })
 export class PlantsService {
 	private fs = inject(Firestore)
 	private env = inject(EnvironmentInjector)
 
-	private speciesCol = runInInjectionContext(this.env, () =>
+	// Liten helper så vi slipper upprepa oss
+	private inCtx<T>(fn: () => T) {
+		return runInInjectionContext(this.env, fn)
+	}
+
+	private speciesCol = this.inCtx(() =>
 		collection(this.fs, 'plants')
 	) as import('firebase/firestore').CollectionReference<SpeciesDoc>
 
 	readonly species: Signal<PlantSpecies[]> = toSignal(
-		runInInjectionContext(this.env, () =>
-			collectionData<SpeciesDoc>(query(this.speciesCol, orderBy('plantType', 'asc')), {
-				idField: 'id',
-			}).pipe(map(list => list as PlantSpecies[]))
+		this.inCtx(() =>
+			collectionData<SpeciesDoc>(query(this.speciesCol, orderBy('plantType', 'asc')), { idField: 'id' }).pipe(
+				map(list => list as PlantSpecies[])
+			)
 		),
 		{ initialValue: [] }
 	)
@@ -32,24 +47,42 @@ export class PlantsService {
 		return m
 	})
 
-	async addSpecies(s: Omit<PlantSpecies, 'id'>) {
-		await addDoc(this.speciesCol, s)
+	async addSpecies(s: Omit<PlantSpecies, 'id'>): Promise<string> {
+		// Viktigt: själva addDoc körs i injection context
+		const ref = await this.inCtx(() => addDoc(this.speciesCol, s))
+		return ref.id
 	}
 
 	async upsertSpecies(s: PlantSpecies) {
-		const { id, ...rest } = s
-		const d = runInInjectionContext(this.env, () => doc(this.fs, `plants/${id}`))
-		await setDoc(d, rest, { merge: true }) // skriv inte id i dokumentet
+		await this.inCtx(async () => {
+			const { id, ...rest } = s
+			const d = doc(this.fs, `plants/${id}`)
+			await setDoc(d, rest, { merge: true })
+		})
 	}
 
-	async updateSpecies(id: string, patch: Partial<PlantSpecies>) {
-		const { id: _ignore, ...rest } = patch as any
-		const d = runInInjectionContext(this.env, () => doc(this.fs, `plants/${id}`))
-		await setDoc(d, rest, { merge: true })
+	private prune<T extends Record<string, any>>(obj: T): Partial<T> {
+		const out: any = {}
+		for (const [k, v] of Object.entries(obj)) {
+			if (v === undefined) continue
+			if (typeof v === 'string' && v.trim() === '') continue
+			if (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) continue
+			out[k] = v
+		}
+		return out
+	}
+
+	async updateSpecies(id: string, patch: Partial<Omit<PlantSpecies, 'id'>>) {
+		await this.inCtx(async () => {
+			const d = doc(this.fs, 'plants', id)
+			await updateDoc(d, this.prune(patch) as any)
+		})
 	}
 
 	async removeSpecies(id: string) {
-		const d = runInInjectionContext(this.env, () => doc(this.fs, `plants/${id}`))
-		await deleteDoc(d)
+		await this.inCtx(async () => {
+			const d = doc(this.fs, `plants/${id}`)
+			await deleteDoc(d)
+		})
 	}
 }

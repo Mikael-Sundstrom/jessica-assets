@@ -42,20 +42,28 @@
 										<span class="muted"> · </span>
 										<span>{{ nameOf(row) || '—' }}</span>
 									</div>
-
+									<span class="spacer"></span>
 									<!-- Lättskött-skala -->
 									<!-- Betyg -->
-									@if (row.grade) {
+									<!-- @if (row.grade) {
 									<span
 										class="grade-badge"
 										[class]="gradeClass(row.grade)"
 										[matTooltip]="'Betyg: ' + gradeLabel(row.grade) + ' av ' + maxGrade"
 										aria-label="Betyg: {{ gradeLabel(row.grade) }} av {{ maxGrade }}"
 									>
-										<!-- Material Symbols (siffror) -->
 										<mat-icon class="grade-icon">{{ gradeIcon(row.grade) }}</mat-icon>
 									</span>
-									}
+									} -->
+									<button
+										mat-icon-button
+										aria-label="Redigera växt"
+										(click)="edit(row, $event)"
+										matTooltip="Redigera"
+										class="edit-btn"
+									>
+										<mat-icon>edit_note</mat-icon>
+									</button>
 								</div>
 
 								@if (row.description) {

@@ -9,9 +9,6 @@ export type Sunlight = (typeof SUNLIGHT)[number]
 export const WATER_NEED = ['low', 'moderate', 'high'] as const
 export type WaterNeed = (typeof WATER_NEED)[number]
 
-export const FERTILIZER_NEED = ['low', 'moderate', 'high'] as const // valfritt men matchar din data
-export type FertilizerNeed = (typeof FERTILIZER_NEED)[number]
-
 export const WATER_LABEL: Record<WaterNeed, string> = {
 	low: 'Lite bevattning',
 	moderate: 'Måttlig bevattning',
@@ -24,18 +21,12 @@ export const SUNLIGHT_META: Record<Sunlight, { label: string; icon: string }> = 
 	shade: { label: 'Skugga', icon: 'filter_drama' },
 }
 
-export const FERTILIZER_LABEL: Record<FertilizerNeed, string> = {
-	low: 'Lite näring',
-	moderate: 'Måttlig näring',
-	high: 'Mycket näring',
-}
-
 // ================================
 // 📆 Fönster / Skötsel / Avstånd
 // ================================
 export type MonthWindow = { earliest: number; latest: number } // 1–12
 
-// ⭐ Betyg (ersätter careEase)
+// ⭐ Betyg
 export type Grade = 1 | 2 | 3 | 4 | 5
 export const MAX_GRADE: Grade = 5
 
@@ -79,9 +70,9 @@ export type Soil = (typeof SOIL)[number]
 export const SOIL_LABEL: Record<Soil, string> = {
 	seed: 'Såjord (S-jord)',
 	planting: 'Planteringsjord',
-	garden: 'Trädgårdsjord (bas/jordförbättring)',
+	garden: 'Trädgårdsjord (bas/förbättring)',
 	bloom: 'Blomjord',
-	veg_herb: 'Grönsaks- & örtjord', // ← fixad stavning
+	veg_herb: 'Grönsaks- & örtjord',
 	tomato_chili: 'Tomat- & chilijord',
 	ericaceous: 'Surjord (rhododendron m.fl.)',
 	rose_perennial: 'Ros- & perennjord',
@@ -249,28 +240,28 @@ export const SOIL_META: Record<Soil, SoilMeta> = {
 // ================================
 // 🌿 Växter / Plantarter
 // ================================
+// prettier-ignore
 export interface PlantSpecies {
-	id: string
-	plantType: string
-	variety?: string
-	name?: string
-	description?: string
-	imageUrl?: string
+  id: string                     // Firestore-id (genereras av databasen, används i UI och uppslag)
+  plantType: string              // Växttyp/slag (t.ex. "Tomat", "Pelargon", "Lavendel")
+  variety?: string               // Sort/variant (t.ex. "Moneymaker", "Sungold") – valfritt
+  name?: string                  // Visningsnamn/egen benämning i appen – valfritt
+  description?: string           // Kort beskrivning/anteckningar – valfritt
+  imageUrl?: string              // Länk till bild – valfritt
 
-	// Badges
-	sunlight?: Sunlight
-	water?: WaterNeed
-	soil?: Soil
-	grade?: Grade
-	isEdible?: boolean
-	fertilizer?: FertilizerNeed // valfritt
+  // Badges
+  sunlight?: Sunlight            // Ljuskrav: 'full_sun' | 'partial_shade' | 'shade' – valfritt
+  water?: WaterNeed              // Vattenbehov: 'low' | 'moderate' | 'high' – valfritt
+  soil?: Soil                    // Rekommenderad jordtyp (från SOIL-listan) – valfritt
+  grade?: Grade                  // Plantans betyg 1–5 – valfritt
+  isEdible?: boolean             // Ätbar växt (true/false) – valfritt
 
-	// Fakta
-	sowingWindow?: MonthWindow
-	sowingDepthMm?: number
-	spacing?: Spacing
-	growthHeightCm?: HeightRangeCm // 75 ELLER {min:60,max:90}
-	harvestWindow?: MonthWindow
+  // Fakta
+  sowingWindow?: MonthWindow     // Såfönster { earliest: 1–12, latest: 1–12 } – valfritt
+  sowingDepthMm?: number         // Sådjup i millimeter – valfritt
+  spacing?: Spacing              // Avstånd { betweenPlantsCm?, betweenRowsCm? } – valfritt
+  growthHeightCm?: HeightRangeCm // Sluthöjd i cm, t.ex. 75 ELLER { min?, max?, approx?, note? } – valfritt
+  harvestWindow?: MonthWindow    // Skördefönster { earliest: 1–12, latest: 1–12 } – valfritt
 }
 
 // ================================

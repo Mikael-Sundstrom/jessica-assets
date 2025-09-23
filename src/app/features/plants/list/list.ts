@@ -7,6 +7,8 @@ import { PlantSpecies, WATER_LABEL, SUNLIGHT_META, SOIL_META, Grade, MAX_GRADE, 
 import { MatTooltipModule } from '@angular/material/tooltip'
 import { MatDialog } from '@angular/material/dialog'
 import { ImageViewerDialog } from '../../../components/image-viewer/image-viewer.dialog'
+import { AddEditPlantData, AddEditPlantDialogComponent } from '../add-plant/add-edit-plant-dialog.component'
+import { firstValueFrom } from 'rxjs'
 
 type Col = 'plantType' | 'name' | 'variety' | 'sowWindow'
 
@@ -153,4 +155,60 @@ export class PlantsList {
 			backdropClass: 'image-backdrop',
 		})
 	}
+
+	async edit(row: PlantSpecies, ev?: Event) {
+		ev?.stopPropagation()
+		const ref = this.dialog.open(AddEditPlantDialogComponent, {
+			width: '720px',
+			maxWidth: '95vw',
+			maxHeight: '90vh',
+			autoFocus: 'first-tabbable',
+			data: { mode: 'edit', id: row.id, value: row } as const,
+		})
+
+		const res = await firstValueFrom(ref.afterClosed())
+		if (res?.ok && res.mode === 'edit') {
+			const patch = diffClean(row, res.value) // 🔥 endast ändrade fält, utan undefined
+			if (Object.keys(patch).length) {
+				await this.svc.updateSpecies(res.id, patch as any)
+				console.log('Växt uppdaterad:', res.id)
+			} else {
+				console.log('Inga ändringar – skip update')
+			}
+		}
+	}
+}
+// === Gör en enkel djup-diff som även prunar undefined/tomma ===
+function diffClean<T extends Record<string, any>>(original: T, next: T): Partial<T> {
+	const out: any = {}
+	for (const key of Object.keys(next)) {
+		const a = original[key]
+		const b = next[key]
+		if (isEqual(a, b)) continue
+		if (b === undefined) continue // skicka inte undefined
+		if (typeof b === 'string' && b.trim() === '') continue
+		if (b && typeof b === 'object' && !Array.isArray(b)) {
+			const sub = diffClean(a ?? {}, b)
+			if (Object.keys(sub).length) out[key] = sub
+		} else {
+			out[key] = b
+		}
+	}
+	return out
+}
+
+function isEqual(a: any, b: any): boolean {
+	if (a === b) return true
+	if (typeof a !== typeof b) return false
+	if (a && typeof a === 'object' && !Array.isArray(a)) {
+		const ak = Object.keys(a ?? {})
+		const bk = Object.keys(b ?? {})
+		if (ak.length !== bk.length) return false
+		return ak.every(k => isEqual(a[k], b[k]))
+	}
+	if (Array.isArray(a) && Array.isArray(b)) {
+		if (a.length !== b.length) return false
+		return a.every((v, i) => isEqual(v, b[i]))
+	}
+	return false
 }
