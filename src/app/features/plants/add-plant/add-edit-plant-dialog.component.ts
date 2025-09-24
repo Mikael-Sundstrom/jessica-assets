@@ -20,6 +20,9 @@ import {
 	type PlantSpecies,
 	type Grade,
 	Spacing,
+	SOWING,
+	SOWING_META,
+	type SowingMethod,
 } from '../plants.model'
 
 export const MONTHS = [
@@ -59,7 +62,7 @@ export type AddEditPlantData = { mode: 'add' } | { mode: 'edit'; id: string; val
 		`
 			.row {
 				display: grid;
-				gap: 1.5rem;
+				gap: 1rem;
 				grid-template-columns: 1fr 1fr;
 			}
 			.row .checkboxe-edible {
@@ -96,18 +99,18 @@ export type AddEditPlantData = { mode: 'add' } | { mode: 'edit'; id: string; val
 					</mat-form-field>
 
 					<mat-form-field>
-						<mat-label>Sort/variant</mat-label>
-						<input matInput formControlName="variety" placeholder="t.ex. 'Moneymaker'" />
+						<mat-label>Odlingsvariant</mat-label>
+						<input matInput formControlName="variety" placeholder="t.ex. 'Växthus'" />
 					</mat-form-field>
 
 					<mat-form-field class="full">
 						<mat-label>Namn (visningsnamn)</mat-label>
-						<input matInput formControlName="name" placeholder="Valfritt visningsnamn" />
+						<input matInput formControlName="name" placeholder="t.ex. 'Black cherry'" />
 					</mat-form-field>
 
 					<mat-form-field class="full">
 						<mat-label>Beskrivning</mat-label>
-						<textarea matInput formControlName="description" rows="3"></textarea>
+						<textarea matInput formControlName="description" rows="4"></textarea>
 					</mat-form-field>
 
 					<mat-form-field class="full">
@@ -137,11 +140,15 @@ export type AddEditPlantData = { mode: 'add' } | { mode: 'edit'; id: string; val
 						</mat-select>
 					</mat-form-field>
 
+					<!-- Såmetod -->
 					<mat-form-field>
-						<mat-label>Jord</mat-label>
-						<mat-select formControlName="soil">
-							@for (j of soilOptions; track j.value) {
-							<mat-option [value]="j.value">{{ j.label }}</mat-option>
+						<mat-label>Såmetod</mat-label>
+						<mat-select formControlName="sowingMethod">
+							@for (o of sowingOptions; track o.value) {
+							<mat-option [value]="o.value">
+								<mat-icon style="margin-right:.75rem;">{{ o.icon }}</mat-icon>
+								{{ o.label }}
+							</mat-option>
 							}
 						</mat-select>
 					</mat-form-field>
@@ -212,6 +219,15 @@ export type AddEditPlantData = { mode: 'add' } | { mode: 'edit'; id: string; val
 						<input matInput type="number" formControlName="heightMax" />
 					</mat-form-field>
 
+					<mat-form-field>
+						<mat-label>Jord</mat-label>
+						<mat-select formControlName="soil">
+							@for (j of soilOptions; track j.value) {
+							<mat-option [value]="j.value">{{ j.label }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+
 					<span class="checkboxe-edible">
 						<mat-checkbox class="full" formControlName="isEdible">Ätbar</mat-checkbox>
 					</span>
@@ -272,6 +288,12 @@ export class AddEditPlantDialogComponent {
 	}))
 	soilOptions: ReadonlyArray<Option<(typeof SOIL)[number]>> = SOIL.map(v => ({ value: v, label: SOIL_LABEL[v] }))
 
+	sowingOptions: ReadonlyArray<Option<SowingMethod>> = SOWING.map(v => ({
+		value: v,
+		label: SOWING_META[v].label,
+		icon: SOWING_META[v].icon,
+	}))
+
 	months = MONTHS
 
 	form = this.fb.nonNullable.group({
@@ -287,9 +309,10 @@ export class AddEditPlantDialogComponent {
 		isEdible: [false],
 		grade: this.fb.control<Grade | undefined>(undefined),
 
+		sowingMethod: ['' as '' | SowingMethod],
+		sowingDepthMm: [undefined as number | undefined],
 		sowFrom: [undefined as number | undefined],
 		sowTo: [undefined as number | undefined],
-		sowingDepthMm: [undefined as number | undefined],
 
 		betweenPlantsCm: [undefined as number | undefined],
 		betweenRowsCm: [undefined as number | undefined],
@@ -332,9 +355,10 @@ export class AddEditPlantDialogComponent {
 			soil: (row.soil as any) ?? '',
 			isEdible: !!row.isEdible,
 			grade: row.grade as Grade | undefined,
+			sowingMethod: (row.sowingMethod as any) ?? '',
+			sowingDepthMm: row.sowingDepthMm,
 			sowFrom: row.sowingWindow?.earliest,
 			sowTo: row.sowingWindow?.latest,
-			sowingDepthMm: row.sowingDepthMm,
 			betweenPlantsCm: row.spacing?.betweenPlantsCm,
 			betweenRowsCm: row.spacing?.betweenRowsCm,
 			heightMin,
@@ -412,6 +436,7 @@ export class AddEditPlantDialogComponent {
 		if (v.grade != null) dto.grade = v.grade
 		if (v.sowFrom || v.sowTo) dto.sowingWindow = { earliest: v.sowFrom ?? v.sowTo, latest: v.sowTo ?? v.sowFrom }
 		if (v.sowingDepthMm != null) dto.sowingDepthMm = v.sowingDepthMm
+		if (v.sowingMethod) dto.sowingMethod = v.sowingMethod
 		if (spacing) dto.spacing = spacing
 		if (height != null) dto.growthHeightCm = height
 		if (v.harvestFrom || v.harvestTo) {

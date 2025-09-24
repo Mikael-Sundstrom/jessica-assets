@@ -33,6 +33,10 @@
 	}
 }
 
+:root {
+	--toolbar-height: 60px;
+}
+
 /* ================== BAS: Ljus (grå) ================== */
 html {
 	color-scheme: light;
@@ -144,7 +148,7 @@ body {
 		subhead-font: Roboto Condensed,
 		subhead-size: 19px,
 		subhead-line-height: 30px,
-		container-max-width: 96vw,
+		container-max-width: calc(100% - 2rem),
 		content-padding: 0,
 	)
 );
@@ -152,7 +156,7 @@ body {
 @include mat.toolbar-overrides(
 	(
 		title-text-size: 20px,
-		standard-height: 60px,
+		standard-height: var(--toolbar-height),
 		mobile-height: 60px,
 	)
 );
@@ -164,6 +168,17 @@ body {
 		row-item-label-text-font: Roboto Condensed,
 	)
 );
+
+@include mat.paginator-overrides(
+	(
+		container-background-color: var(--mat-sys-surface),
+		container-text-color: var(--mat-sys-on-surface),
+		enabled-icon-color: var(--mat-sys-on-surface),
+		disabled-icon-color: color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent),
+		page-size-select-width: 4.2rem,
+	)
+);
+
 .mat-mdc-dialog-title {
 	text-align: center;
 }

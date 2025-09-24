@@ -238,6 +238,102 @@ export const SOIL_META: Record<Soil, SoilMeta> = {
 }
 
 // ================================
+// 🌱 Såmetoder
+// ================================
+export const SOWING = [
+	'indoor', // Försådd inomhus
+	'direct', // Direktsådd ute
+	'hotbed', // Varmbänk/Drivbänk
+	'winter', // Vinterförsådd
+	'coldframe', // Kallsådd (kallbänk/växthus utan värme)
+	'autumn', // Höstdirektsådd
+	'cuttings', // Sticklingar
+	'division', // Delning
+] as const
+export type SowingMethod = (typeof SOWING)[number]
+
+export const SOWING_LABEL: Record<SowingMethod, string> = {
+	indoor: 'Försådd (inomhus)',
+	direct: 'Direktsådd',
+	hotbed: 'Varmbänk/Drivbänk',
+	winter: 'Vinterförsådd',
+	coldframe: 'Kallsådd (kallbänk)',
+	autumn: 'Höstdirektsådd',
+	cuttings: 'Sticklingar',
+	division: 'Delning',
+}
+
+type Env = 'indoors' | 'outdoors' | 'outdoors_sheltered'
+export interface SowingMeta {
+	label: string
+	icon: string // Material symbol
+	env: Env // Typisk miljö
+	short: string // 1–2 rader till tooltip/badge
+	examples?: string[] // Vanliga växter
+	notes?: string // Valfri extra info
+}
+
+export const SOWING_META: Record<SowingMethod, SowingMeta> = {
+	indoor: {
+		label: SOWING_LABEL.indoor,
+		icon: 'home',
+		env: 'indoors',
+		short: 'Så inomhus tidigt för försprång, plantera ut senare.',
+		examples: ['Tomat', 'Chili', 'Paprika', 'Purjo', 'Sommarblommor'],
+	},
+	direct: {
+		label: SOWING_LABEL.direct,
+		icon: 'yard',
+		env: 'outdoors',
+		short: 'Så direkt på växtplatsen när jorden värmts upp.',
+		examples: ['Morot', 'Rädisor', 'Sallat', 'Ärter', 'Bönor'],
+	},
+	hotbed: {
+		label: SOWING_LABEL.hotbed,
+		icon: 'local_fire_department',
+		env: 'outdoors_sheltered',
+		short: 'Uppvärmd bädd för extra tidig start utomhus.',
+		examples: ['Sallat', 'Spenat', 'Tidiga kålväxter'],
+		notes: 'Värme från gödsel/kompost. Bra för tidig vår.',
+	},
+	winter: {
+		label: SOWING_LABEL.winter,
+		icon: 'ac_unit',
+		env: 'outdoors_sheltered',
+		short: 'Så i kall miljö under vintern – gror naturligt på våren.',
+		examples: ['Perenner', 'Vissa örter', 'Köldgroende arter'],
+	},
+	coldframe: {
+		label: SOWING_LABEL.coldframe,
+		icon: 'device_thermostat',
+		env: 'outdoors_sheltered',
+		short: 'Tidigt säsongsstart i kallbänk/växthus utan värme.',
+		examples: ['Spenat', 'Sallat', 'Persilja'],
+	},
+	autumn: {
+		label: SOWING_LABEL.autumn,
+		icon: 'calendar_month',
+		env: 'outdoors',
+		short: 'Så på hösten för tidig groning nästa vår.',
+		examples: ['Morot', 'Persilja', 'Vissa perenner'],
+	},
+	cuttings: {
+		label: SOWING_LABEL.cuttings,
+		icon: 'content_cut',
+		env: 'indoors',
+		short: 'Föröka från skott/kvistar som rotas.',
+		examples: ['Pelargon', 'Lavendel', 'Vinbär', 'Örter'],
+	},
+	division: {
+		label: SOWING_LABEL.division,
+		icon: 'call_split',
+		env: 'outdoors',
+		short: 'Dela etablerade plantor i flera delar.',
+		examples: ['Perenner', 'Rabarber', 'Gräslök'],
+	},
+}
+
+// ================================
 // 🌿 Växter / Plantarter
 // ================================
 // prettier-ignore
@@ -257,6 +353,7 @@ export interface PlantSpecies {
   isEdible?: boolean             // Ätbar växt (true/false) – valfritt
 
   // Fakta
+  sowingMethod?: SowingMethod  // t.ex. ['indoor'] eller ['direct','coldframe']
   sowingWindow?: MonthWindow     // Såfönster { earliest: 1–12, latest: 1–12 } – valfritt
   sowingDepthMm?: number         // Sådjup i millimeter – valfritt
   spacing?: Spacing              // Avstånd { betweenPlantsCm?, betweenRowsCm? } – valfritt
