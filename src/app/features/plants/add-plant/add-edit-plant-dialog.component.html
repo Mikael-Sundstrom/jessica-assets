@@ -1,0 +1,157 @@
+<h2 mat-dialog-title>@if (isEdit()) { Redigera växt } @else { Ny växt }</h2>
+
+<mat-dialog-content class="mat-typography">
+	<form class="mat-dialog-content" [formGroup]="form" (ngSubmit)="submit()">
+		<div class="row">
+			<mat-form-field>
+				<mat-label>Växttyp</mat-label>
+				<input matInput formControlName="plantType" [matAutocomplete]="ptAuto" placeholder="t.ex. Tomat" />
+
+				<mat-autocomplete #ptAuto="matAutocomplete" autoActiveFirstOption>
+					@for (opt of (filteredPlantTypes$ | async); track opt.value) {
+					<mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+					}
+				</mat-autocomplete>
+			</mat-form-field>
+
+			<mat-form-field>
+				<mat-label>Namn (visningsnamn)</mat-label>
+				<input matInput formControlName="name" placeholder="t.ex. 'Black cherry'" />
+			</mat-form-field>
+
+			<mat-form-field class="full">
+				<mat-label>Beskrivning</mat-label>
+				<textarea matInput formControlName="description" rows="3"></textarea>
+			</mat-form-field>
+
+			<!-- Ljus -->
+			<div class="slider-row sun-slider">
+				<mat-icon class="slide-icon">wb_sunny</mat-icon>
+				<mat-slider min="1" max="3" step="1" discrete showTickMarks [displayWith]="sunDisplay">
+					<input matSliderThumb formControlName="sunlight" />
+				</mat-slider>
+			</div>
+
+			<!-- Vatten -->
+			<div class="slider-row water-slider">
+				<mat-icon class="slide-icon">water_drop</mat-icon>
+				<mat-slider min="1" max="3" step="1" discrete showTickMarks [displayWith]="waterDisplay">
+					<input matSliderThumb formControlName="water" />
+				</mat-slider>
+			</div>
+
+			<!-- Såddfönster (från–till) -->
+			<div>
+				<mat-icon class="slide-icon">calendar_month</mat-icon>
+				<mat-slider min="1" max="12" step="1" discrete showTickMarks [displayWith]="formatLabel">
+					<input matSliderStartThumb formControlName="sowFrom" />
+					<input matSliderEndThumb formControlName="sowTo" />
+				</mat-slider>
+			</div>
+
+			<!-- Skördefönster (från–till) -->
+			<div>
+				<mat-icon class="slide-icon">agriculture</mat-icon>
+				<mat-slider min="1" max="12" step="1" discrete showTickMarks [displayWith]="formatLabel">
+					<input matSliderStartThumb formControlName="harvestFrom" />
+					<input matSliderEndThumb formControlName="harvestTo" />
+				</mat-slider>
+			</div>
+
+			<!-- Avstånd -->
+			<div>
+				<mat-icon class="slide-icon bigger">fit_page</mat-icon>
+				<mat-slider min="20" max="100" step="5" discrete showTickMarks [displayWith]="formatCm">
+					<input matSliderStartThumb formControlName="betweenPlantsCm" />
+					<input matSliderEndThumb formControlName="betweenRowsCm" />
+				</mat-slider>
+			</div>
+
+			<!-- Höjd -->
+			<div>
+				<mat-icon class="slide-icon">height</mat-icon>
+				<mat-slider min="20" max="250" step="10" discrete showTickMarks [displayWith]="formatCm">
+					<input matSliderStartThumb formControlName="heightMin" />
+					<input matSliderEndThumb formControlName="heightMax" />
+				</mat-slider>
+			</div>
+
+			<!-- Sådjup -->
+			<div class="slider-row sowing-depth">
+				<mat-icon class="slide-icon">vertical_align_bottom</mat-icon>
+				<mat-slider min="5" max="70" step="5" discrete showTickMarks [displayWith]="formatMm">
+					<input matSliderThumb formControlName="sowingDepthMm" />
+				</mat-slider>
+			</div>
+
+			<!-- Ätbar -->
+
+			<div class="slider-row sowing-depth">
+				<mat-icon class="slide-icon">restaurant</mat-icon>
+				<mat-slider min="0" max="1" step="1" discrete showTickMarks [displayWith]="edibleDisplay">
+					<input matSliderThumb formControlName="isEdible" />
+				</mat-slider>
+			</div>
+
+			<!-- Såmetod -->
+			<mat-form-field>
+				<mat-label>Såmetod</mat-label>
+				<mat-select formControlName="sowingMethod">
+					@for (o of sowingOptions; track o.value) {
+					<mat-option [value]="o.value" class="sowing-option">
+						{{ o.label }}
+					</mat-option>
+					}
+				</mat-select>
+			</mat-form-field>
+
+			<mat-form-field>
+				<mat-label>Odlingssätt</mat-label>
+				<mat-select formControlName="cultivation" multiple>
+					<mat-select-trigger>{{ cultivationDisplay }}</mat-select-trigger>
+					@for (opt of cultivationOptions; track opt.value) {
+					<mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+					}
+				</mat-select>
+			</mat-form-field>
+
+			<!-- Jord -->
+			<mat-form-field>
+				<mat-label>Jord</mat-label>
+				<mat-select formControlName="soil">
+					@for (j of soilOptions; track j.value) {
+					<mat-option [value]="j.value">{{ j.label }}</mat-option>
+					}
+				</mat-select>
+			</mat-form-field>
+
+			<mat-form-field>
+				<mat-label>Bild-URL</mat-label>
+				<input matInput formControlName="imageUrl" placeholder="https://..." />
+			</mat-form-field>
+
+			<!-- Betyg 1–5 -->
+			<!-- <div class="full grade-picker" aria-label="Betyg">
+				<mat-button-toggle-group
+					formControlName="grade"
+					[multiple]="false"
+					name="grade"
+					aria-label="Välj betyg"
+				>
+					@for (g of gradeScale(); track g) {
+					<mat-button-toggle [value]="g" aria-label="Betyg {{ g }}">
+						<mat-icon>{{ counterIcon(g) }}</mat-icon>
+					</mat-button-toggle>
+					}
+				</mat-button-toggle-group>
+			</div> -->
+		</div>
+	</form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+	<button mat-button type="button" (click)="close()">Avbryt</button>
+	<button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="form.invalid || busy()">
+		@if (isEdit()) { Uppdatera } @else { Spara }
+	</button>
+</mat-dialog-actions>

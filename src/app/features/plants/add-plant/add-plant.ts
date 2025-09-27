@@ -29,22 +29,8 @@ export class AddPlant {
 		;(async () => {
 			const res = await firstValueFrom(ref.afterClosed())
 			if (res?.ok && res.mode === 'add') {
-				const clean = pruneUndefined(res.value)
-				const id = await this.plants.addSpecies(clean as any)
-				console.log('Ny växt skapad:', id)
+				await this.plants.addSpecies(res.value)
 			}
 		})()
 	}
-}
-// Samma pruneUndefined som ovan – lägg i en utils.ts om du vill återanvända
-function pruneUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
-	const out: any = {}
-	for (const k of Object.keys(obj)) {
-		const v = obj[k]
-		if (v === undefined) continue
-		if (typeof v === 'string' && v.trim() === '') continue
-		if (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) continue
-		out[k] = v
-	}
-	return out
 }

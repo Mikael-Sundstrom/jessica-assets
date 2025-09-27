@@ -153,6 +153,22 @@ body {
 	)
 );
 
+/* @include mat.form-field-overrides(
+	(
+		container-text-line-height: 20px,
+		container-height: 48px,
+		container-vertical-padding: 14px,
+		container-text-size: 14px,
+	)
+);
+
+@include mat.select-overrides(
+	(
+		trigger-text-line-height: 20px,
+		trigger-text-size: 14px,
+	)
+); */
+
 @include mat.toolbar-overrides(
 	(
 		title-text-size: 20px,
@@ -178,6 +194,21 @@ body {
 		page-size-select-width: 4.2rem,
 	)
 );
+
+@include mat.slider-overrides(
+	(
+		label-label-text-size: 11px,
+		label-label-text-line-height: 11px,
+		label-label-text-font: Roboto Condensed,
+	)
+);
+
+mat-option {
+	min-height: 40px !important;
+	span {
+		font-size: 13px !important;
+	}
+}
 
 .mat-mdc-dialog-title {
 	text-align: center;

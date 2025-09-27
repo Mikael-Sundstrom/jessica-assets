@@ -2,6 +2,7 @@
 	"files.exclude": {
 		"**/*spec.ts": true,
 		"**/.prettierrc": true,
+		"**/.prettierignore": false,
 		"**/.editorconfig": true,
 		"**/.firebaserc": true,
 		"**/.gitignore": false,
@@ -9,7 +10,7 @@
 		"**/firebase.json": false,
 		"**/angular.json": false,
 		"**/*-lock.json": true,
-		"**/tsconfig*.json": true,
+		"**/tsconfig*.json": false,
 		"**/node_modules": true,
 		"**/public": false,
 		"**/dist": true,
@@ -19,7 +20,6 @@
 	},
 	"material-icon-theme.files.associations": {
 		"main.ts": "typescript",
-		"*.ts": "angular-component",
-		"*.model.ts": "angular"
+		"*.ts": "angular-component"
 	}
 }

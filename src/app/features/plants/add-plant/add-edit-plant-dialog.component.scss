@@ -1,0 +1,41 @@
+@use '@angular/material' as mat;
+
+.row {
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: 1fr 1fr;
+}
+.row .checkboxe-edible {
+	align-items: center;
+	display: flex;
+}
+.full {
+	grid-column: 1 / -1;
+}
+.full.grade-picker {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	align-items: center;
+}
+.full.grade-picker mat-icon {
+	height: 26px;
+	width: 26px;
+}
+mat-dialog-content.mat-mdc-dialog-content {
+	padding-top: 0.5rem !important;
+}
+.slide-icon {
+	padding-right: 0.5rem;
+	vertical-align: middle;
+	color: var(--mat-sys-on-surface-variant);
+}
+.sun-slider,
+.water-slider {
+	@include mat.slider-overrides(
+		(
+			label-label-text-size: 18px,
+			label-label-text-font: Material Symbols Rounded,
+		)
+	);
+}

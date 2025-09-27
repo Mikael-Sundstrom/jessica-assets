@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core'
+import { Component } from '@angular/core'
 import { PlantsList } from './list/list'
 import { AddPlant } from './add-plant/add-plant'
 
